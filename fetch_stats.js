@@ -148,7 +148,7 @@ async function main() {
     if (!fs.existsSync(exportDir)) {
         fs.mkdirSync(exportDir);
     }
-    const exportPath = path.join(exportDir, `${yyyy}-${mm}-${dd}.json`);
+    const exportPath = path.join(exportDir, `${yyyy}-${mm}-${dd}-${hh}-${mm}.json`);
     fs.writeFileSync(exportPath, JSON.stringify(output, null, 2));
 
     console.log('stats.json 已更新。');
