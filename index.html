@@ -21,7 +21,13 @@
         .info { color: #666; font-size: 0.9em; text-align: center; }
         .article-list { font-size: 0.8em; color: #555; margin-top: 5px; padding-left: 15px; }
         .article-list span { display: block; }
-        .deleted-badge { color: #c00; font-size: 0.85em; }
+        .deleted-badge {
+            font-weight: bold;
+            color: #c00;
+        }
+        .high-count {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -62,9 +68,13 @@
                     for (const [author, infoObj] of entries) {
                         const row = document.createElement('tr');
                         const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
-                        let countDisplay = `${infoObj.count}篇`;
+                        let countDisplay = `${infoObj.count}`;
                         if (infoObj.deletedCount > 0) {
-                            countDisplay += ` <span class="deleted-badge">(刪除${infoObj.deletedCount}篇)</span>`;
+                            countDisplay += ` <span class="deleted-badge">(刪除${infoObj.deletedCount})</span>`;
+                        }
+                        // 若總篇數大於 2，整列文字變紅色
+                        if (infoObj.count > 2) {
+                            row.classList.add('high-count');
                         }
                         row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
                         tbody.appendChild(row);
