@@ -1,6 +1,4 @@
 // fetch_stats.js
-// 抓取 PTT e-coupon 板，統計本週（週一至週日）作者篇數，輸出 stats.json 與 export/日期.json
-
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
@@ -47,7 +45,27 @@ function fetchPage(url) {
     });
 }
 
-function parsePage(html, seenArticleIds, authorCountMap, pageLabel) {
+function extractOriginalAuthor(titleHtml) {
+    // 方法1：直接匹配 <ID>（可能未轉義）
+    let match = titleHtml.match(/<([^>]+)>/);
+    if (match) {
+        const id = match[1].trim();
+        if (id && id !== '/') return id;
+    }
+    // 方法2：匹配 &lt;ID&gt;
+    match = titleHtml.match(/&lt;([^&]+)&gt;/);
+    if (match) {
+        return match[1].trim();
+    }
+    // 方法3：更寬鬆的匹配，例如「(已被xxx刪除) <ID>」
+    match = titleHtml.match(/&lt;([^&]+)&gt;|<([^>]+)>/);
+    if (match) {
+        return (match[1] || match[2]).trim();
+    }
+    return null;
+}
+
+function parsePage(html, seenArticleIds, authorData, pageLabel) {
     let hasInRange = false;
     let articlesFound = 0;
 
@@ -60,9 +78,6 @@ function parsePage(html, seenArticleIds, authorCountMap, pageLabel) {
         if (!dateMatch) continue;
         const dateText = dateMatch[1].trim();
 
-        if (dateText < dateRange.start || dateText > dateRange.end) continue;
-        hasInRange = true;
-
         let authorText = '';
         const authorMatch = block.match(/<div class="author">(.*?)<\/div>/);
         if (authorMatch) authorText = authorMatch[1].trim();
@@ -72,6 +87,9 @@ function parsePage(html, seenArticleIds, authorCountMap, pageLabel) {
         const href = titleMatch[1];
         const titleHtml = titleMatch[2];
 
+        if (dateText < dateRange.start || dateText > dateRange.end) continue;
+        hasInRange = true;
+
         const idMatch = href.match(/\/(M\.\d+\.A\.\w+)\.html$/);
         if (!idMatch) continue;
         const articleId = idMatch[1];
@@ -79,30 +97,37 @@ function parsePage(html, seenArticleIds, authorCountMap, pageLabel) {
         seenArticleIds.add(articleId);
 
         if (!authorText || authorText === '-') {
-            const originalAuthorMatch = titleHtml.match(/&lt;([^&]+)&gt;/);
-            if (originalAuthorMatch) authorText = originalAuthorMatch[1].trim();
+            const extracted = extractOriginalAuthor(titleHtml);
+            if (extracted) {
+                authorText = extracted;
+                console.log(`[${pageLabel}] 從標題提取作者：${authorText}（文章 ${articleId}）`);
+            } else {
+                console.warn(`[${pageLabel}] 無法從標題提取作者，文章 ID: ${articleId}，標題: ${titleHtml}`);
+                continue; // 仍無法取得作者，跳過
+            }
         }
 
-        if (!authorText || authorText === '-') continue;
-
-        // 只統計篇數，不記錄文章 ID
-        authorCountMap[authorText] = (authorCountMap[authorText] || 0) + 1;
+        if (!authorData[authorText]) {
+            authorData[authorText] = { count: 0, articleIds: [] };
+        }
+        authorData[authorText].count += 1;
+        authorData[authorText].articleIds.push(articleId);
     }
 
-    console.log(`[${pageLabel}] 解析到 ${articlesFound} 篇文章，本週範圍內：${hasInRange ? '是' : '否'}`);
+    console.log(`[${pageLabel}] 解析到 ${articlesFound} 篇文章，其中本週範圍內：${hasInRange ? '是' : '否'}`);
     return { hasInRange };
 }
 
 async function main() {
     const seenArticleIds = new Set();
-    const authorCountMap = {};
+    const authorData = {};
     let scannedPages = 0;
 
     if (FETCH_LATEST_PAGE) {
         console.log('抓取最新頁 index.html...');
         try {
             const html = await fetchPage(BASE_URL + 'index.html');
-            parsePage(html, seenArticleIds, authorCountMap, '最新頁');
+            parsePage(html, seenArticleIds, authorData, '最新頁');
             scannedPages++;
         } catch (err) {
             console.error('最新頁抓取失敗:', err);
@@ -115,7 +140,7 @@ async function main() {
         console.log(`抓取第 ${page} 頁（${url}）...`);
         try {
             const html = await fetchPage(url);
-            const { hasInRange } = parsePage(html, seenArticleIds, authorCountMap, `第${page}頁`);
+            const { hasInRange } = parsePage(html, seenArticleIds, authorData, `第${page}頁`);
             scannedPages++;
             if (!hasInRange) {
                 console.log('已超出日期範圍，停止翻頁。');
@@ -128,33 +153,30 @@ async function main() {
         }
     }
 
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
+
     const output = {
-        generatedAt: new Date().toISOString(),
+        generatedAt: now.toISOString(),
         mode: 'week',
         dateRange: dateRange,
         scannedPages: scannedPages,
-        stats: authorCountMap  // 直接是 { author: count }
+        stats: authorData
     };
 
-    // 寫入 stats.json（網頁讀取）
+    // 寫入帶時間戳的檔案
+    const exportDir = path.join(__dirname, 'export');
+    fs.mkdirSync(exportDir, { recursive: true });
+    const timestampFile = path.join(exportDir, `${timestamp}.json`);
+    fs.writeFileSync(timestampFile, JSON.stringify(output, null, 2));
+
+    // 更新 stats.json（供前端讀取）
     fs.writeFileSync('stats.json', JSON.stringify(output, null, 2));
 
-    // 寫入 export/YYYY-MM-DD.json（存檔）
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const exportDir = 'export';
-    if (!fs.existsSync(exportDir)) {
-        fs.mkdirSync(exportDir);
-    }
-    const exportPath = path.join(exportDir, `${yyyy}-${mm}-${dd}.json`);
-    fs.writeFileSync(exportPath, JSON.stringify(output, null, 2));
-
+    console.log(`已輸出 ${timestampFile}`);
     console.log('stats.json 已更新。');
-    console.log(`已存檔至 ${exportPath}`);
     console.log(`統計區間：${dateRange.start} ~ ${dateRange.end}`);
-    console.log(`總作者數：${Object.keys(authorCountMap).length}`);
+    console.log(`總作者數：${Object.keys(authorData).length}`);
 }
 
 function sleep(ms) {
