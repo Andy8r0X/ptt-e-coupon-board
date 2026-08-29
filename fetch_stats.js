@@ -46,21 +46,14 @@ function fetchPage(url) {
 }
 
 function extractOriginalAuthor(titleHtml) {
-    // 方法1：直接匹配 <ID>（可能未轉義）
-    let match = titleHtml.match(/<([^>]+)>/);
+    // 方法1：匹配 &lt;ID&gt;
+    let match = titleHtml.match(/&lt;([^&]+)&gt;/);
+    if (match) return match[1].trim();
+    // 方法2：匹配 <ID>（未轉義）
+    match = titleHtml.match(/<([^>]+)>/);
     if (match) {
         const id = match[1].trim();
         if (id && id !== '/') return id;
-    }
-    // 方法2：匹配 &lt;ID&gt;
-    match = titleHtml.match(/&lt;([^&]+)&gt;/);
-    if (match) {
-        return match[1].trim();
-    }
-    // 方法3：更寬鬆的匹配，例如「(已被xxx刪除) <ID>」
-    match = titleHtml.match(/&lt;([^&]+)&gt;|<([^>]+)>/);
-    if (match) {
-        return (match[1] || match[2]).trim();
     }
     return null;
 }
@@ -96,22 +89,38 @@ function parsePage(html, seenArticleIds, authorData, pageLabel) {
         if (seenArticleIds.has(articleId)) continue;
         seenArticleIds.add(articleId);
 
-        if (!authorText || authorText === '-') {
+        let isDeleted = false;
+        let finalAuthor = authorText;
+
+        // 判斷是否為刪除文章（作者欄位為 '-' 或空）
+        if (!finalAuthor || finalAuthor === '-') {
             const extracted = extractOriginalAuthor(titleHtml);
             if (extracted) {
-                authorText = extracted;
-                console.log(`[${pageLabel}] 從標題提取作者：${authorText}（文章 ${articleId}）`);
+                finalAuthor = extracted;
+                isDeleted = true;
+                console.log(`[${pageLabel}] 從標題提取作者：${finalAuthor}（文章 ${articleId}）`);
             } else {
                 console.warn(`[${pageLabel}] 無法從標題提取作者，文章 ID: ${articleId}，標題: ${titleHtml}`);
                 continue; // 仍無法取得作者，跳過
             }
         }
 
-        if (!authorData[authorText]) {
-            authorData[authorText] = { count: 0, articleIds: [] };
+        if (!authorData[finalAuthor]) {
+            authorData[finalAuthor] = {
+                count: 0,
+                normalCount: 0,
+                deletedCount: 0,
+                articleIds: []
+            };
         }
-        authorData[authorText].count += 1;
-        authorData[authorText].articleIds.push(articleId);
+
+        authorData[finalAuthor].count += 1;
+        authorData[finalAuthor].articleIds.push(articleId);
+        if (isDeleted) {
+            authorData[finalAuthor].deletedCount += 1;
+        } else {
+            authorData[finalAuthor].normalCount += 1;
+        }
     }
 
     console.log(`[${pageLabel}] 解析到 ${articlesFound} 篇文章，其中本週範圍內：${hasInRange ? '是' : '否'}`);
