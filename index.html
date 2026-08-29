@@ -8,6 +8,13 @@
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 700px; margin: auto; }
         h1 { text-align: center; }
+        .toolbar { text-align: center; margin: 10px 0; }
+        .toolbar button {
+            margin: 0 5px; padding: 8px 16px; cursor: pointer;
+            background: #4CAF50; color: white; border: none; border-radius: 4px;
+            font-size: 14px;
+        }
+        .toolbar button:hover { background: #45a049; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
         th { background-color: #f2f2f2; }
@@ -20,6 +27,10 @@
     <div class="container">
         <h1>PTT e-coupon 板本週作者發文統計</h1>
         <div id="info" class="info">載入中...</div>
+        <div class="toolbar" id="toolbar" style="display:none;">
+            <button id="export-csv">匯出 CSV</button>
+            <button id="export-xls">匯出 XLS</button>
+        </div>
         <table id="stats-table" style="display:none;">
             <thead>
                 <tr><th>作者</th><th>篇數</th><th>文章 ID</th></tr>
@@ -28,13 +39,17 @@
         </table>
     </div>
     <script>
+        let statsData = null; // 儲存從 stats.json 讀取的資料
+
         fetch('stats.json')
             .then(res => res.json())
             .then(data => {
+                statsData = data;
                 const info = document.getElementById('info');
                 const table = document.getElementById('stats-table');
                 const tbody = document.getElementById('stats-body');
-                
+                const toolbar = document.getElementById('toolbar');
+
                 info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
                 
                 const entries = Object.entries(data.stats).sort((a, b) => a[0].localeCompare(b[0]));
@@ -42,6 +57,7 @@
                     info.textContent += '（無資料）';
                 } else {
                     table.style.display = 'table';
+                    toolbar.style.display = 'block';
                     for (const [author, infoObj] of entries) {
                         const row = document.createElement('tr');
                         const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
@@ -53,6 +69,42 @@
             .catch(err => {
                 document.getElementById('info').textContent = '載入失敗：' + err.message;
             });
+
+        // 匯出 CSV
+        document.getElementById('export-csv').addEventListener('click', () => {
+            if (!statsData) return;
+            const rows = [['作者', '篇數', '文章ID']];
+            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+                rows.push([author, infoObj.count, infoObj.articleIds.join(' ')]);
+            }
+            const csvContent = rows.map(row => row.join(',')).join('\n');
+            downloadFile(csvContent, 'ecoupon_stats.csv', 'text/csv;charset=utf-8;');
+        });
+
+        // 匯出 XLS（HTML table 格式，副檔名 .xls）
+        document.getElementById('export-xls').addEventListener('click', () => {
+            if (!statsData) return;
+            let html = '<table border="1"><tr><th>作者</th><th>篇數</th><th>文章ID</th></tr>';
+            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+                html += `<tr><td>${author}</td><td>${infoObj.count}</td><td>${infoObj.articleIds.join('<br>')}</td></tr>`;
+            }
+            html += '</table>';
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            downloadBlob(blob, 'ecoupon_stats.xls');
+        });
+
+        function downloadFile(content, filename, mime) {
+            const blob = new Blob([content], { type: mime });
+            downloadBlob(blob, filename);
+        }
+
+        function downloadBlob(blob, filename) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
     </script>
 </body>
 </html>
