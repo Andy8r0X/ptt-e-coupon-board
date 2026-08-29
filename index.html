@@ -21,6 +21,7 @@
         .info { color: #666; font-size: 0.9em; text-align: center; }
         .article-list { font-size: 0.8em; color: #555; margin-top: 5px; padding-left: 15px; }
         .article-list span { display: block; }
+        .deleted-badge { color: #c00; font-size: 0.85em; }
     </style>
 </head>
 <body>
@@ -39,7 +40,7 @@
         </table>
     </div>
     <script>
-        let statsData = null; // 儲存從 stats.json 讀取的資料
+        let statsData = null;
 
         fetch('stats.json')
             .then(res => res.json())
@@ -61,7 +62,11 @@
                     for (const [author, infoObj] of entries) {
                         const row = document.createElement('tr');
                         const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
-                        row.innerHTML = `<td>${author}</td><td>${infoObj.count}</td><td class="article-list">${idList}</td>`;
+                        let countDisplay = `${infoObj.count}篇`;
+                        if (infoObj.deletedCount > 0) {
+                            countDisplay += ` <span class="deleted-badge">(刪除${infoObj.deletedCount}篇)</span>`;
+                        }
+                        row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
                         tbody.appendChild(row);
                     }
                 }
@@ -70,23 +75,21 @@
                 document.getElementById('info').textContent = '載入失敗：' + err.message;
             });
 
-        // 匯出 CSV
         document.getElementById('export-csv').addEventListener('click', () => {
             if (!statsData) return;
-            const rows = [['作者', '篇數', '文章ID']];
+            const rows = [['作者', '總篇數', '正常篇數', '刪除篇數', '文章ID']];
             for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
-                rows.push([author, infoObj.count, infoObj.articleIds.join(' ')]);
+                rows.push([author, infoObj.count, infoObj.normalCount, infoObj.deletedCount, infoObj.articleIds.join(' ')]);
             }
             const csvContent = rows.map(row => row.join(',')).join('\n');
             downloadFile(csvContent, 'ecoupon_stats.csv', 'text/csv;charset=utf-8;');
         });
 
-        // 匯出 XLS（HTML table 格式，副檔名 .xls）
         document.getElementById('export-xls').addEventListener('click', () => {
             if (!statsData) return;
-            let html = '<table border="1"><tr><th>作者</th><th>篇數</th><th>文章ID</th></tr>';
+            let html = '<table border="1"><tr><th>作者</th><th>總篇數</th><th>正常篇數</th><th>刪除篇數</th><th>文章ID</th></tr>';
             for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
-                html += `<tr><td>${author}</td><td>${infoObj.count}</td><td>${infoObj.articleIds.join('<br>')}</td></tr>`;
+                html += `<tr><td>${author}</td><td>${infoObj.count}</td><td>${infoObj.normalCount}</td><td>${infoObj.deletedCount}</td><td>${infoObj.articleIds.join('<br>')}</td></tr>`;
             }
             html += '</table>';
             const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
