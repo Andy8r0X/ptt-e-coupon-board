@@ -1,4 +1,6 @@
 // fetch_stats.js
+// 抓取 PTT e-coupon 板指定頁面，統計本週（週一至週日）作者篇數，輸出 stats.json
+
 const https = require('https');
 const fs = require('fs');
 
@@ -6,19 +8,20 @@ const fs = require('fs');
 const FETCH_LATEST_PAGE = true;   // 抓取最新頁
 const START_PAGE = 3999;          // 從此頁開始向後抓
 const MAX_PAGES = 50;             // 最多向後抓幾頁
-const STAT_MODE = 'today';        // 'today' 或 'week'
 const DELAY_MS = 800;             // 請求延遲
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
 
+// 取得日期字串（M/D 不補零）
 function getDateStr(date) {
     return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+// 計算本週範圍（週一至週日）
 function getWeekRange() {
     const today = new Date();
-    const day = today.getDay();
+    const day = today.getDay(); // 0=週日, 1=週一, ..., 6=週六
     const diffToMonday = (day + 6) % 7;
     const monday = new Date(today);
     monday.setDate(today.getDate() - diffToMonday);
@@ -27,14 +30,9 @@ function getWeekRange() {
     return { start: getDateStr(monday), end: getDateStr(sunday) };
 }
 
-let dateRange;
-if (STAT_MODE === 'today') {
-    const todayStr = getDateStr(new Date());
-    dateRange = { start: todayStr, end: todayStr };
-} else {
-    dateRange = getWeekRange();
-}
+const dateRange = getWeekRange(); // 本週範圍
 
+// 發送 HTTPS GET 請求
 function fetchPage(url) {
     return new Promise((resolve, reject) => {
         const options = {
@@ -51,37 +49,73 @@ function fetchPage(url) {
     });
 }
 
+// 從 HTML 中解析文章列表
 function parsePage(html, seenArticleIds) {
     const authorCount = {};
     let hasInRange = false;
-    const regex = /<div class="r-ent">[\s\S]*?<div class="date">(.*?)<\/div>[\s\S]*?<div class="author">(.*?)<\/div>[\s\S]*?<div class="title">[\s\S]*?<a href="([^"]+)"/g;
-    let match;
-    while ((match = regex.exec(html)) !== null) {
-        const dateText = match[1].trim();
-        const authorText = match[2].trim();
-        const href = match[3];
-        
-        if (dateText >= dateRange.start && dateText <= dateRange.end) {
-            hasInRange = true;
-            const idMatch = href.match(/\/(M\.\d+\.A\.\w+)\.html$/);
-            if (!idMatch) continue;
-            const articleId = idMatch[1];
-            if (seenArticleIds.has(articleId)) continue;
-            seenArticleIds.add(articleId);
-            
-            if (authorText && authorText !== '-') {
-                authorCount[authorText] = (authorCount[authorText] || 0) + 1;
+
+    // 正規表達式匹配每一篇 r-ent
+    const rEntRegex = /<div class="r-ent">([\s\S]*?)<\/div>\s*<\/div>/g;
+    let rEntMatch;
+    while ((rEntMatch = rEntRegex.exec(html)) !== null) {
+        const block = rEntMatch[1];
+
+        // 提取日期
+        const dateMatch = block.match(/<div class="date">(.*?)<\/div>/);
+        if (!dateMatch) continue;
+        const dateText = dateMatch[1].trim();
+
+        // 判斷是否在本週範圍內
+        if (dateText < dateRange.start || dateText > dateRange.end) {
+            continue;
+        }
+        hasInRange = true;
+
+        // 提取作者（可能為 '-'）
+        let authorText = '';
+        const authorMatch = block.match(/<div class="author">(.*?)<\/div>/);
+        if (authorMatch) {
+            authorText = authorMatch[1].trim();
+        }
+
+        // 提取標題連結與標題文字
+        const titleMatch = block.match(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+        if (!titleMatch) continue;
+        const href = titleMatch[1];
+        const titleHtml = titleMatch[2];
+
+        // 取得文章唯一識別碼
+        const idMatch = href.match(/\/(M\.\d+\.A\.\w+)\.html$/);
+        if (!idMatch) continue;
+        const articleId = idMatch[1];
+        if (seenArticleIds.has(articleId)) continue;
+        seenArticleIds.add(articleId);
+
+        // 如果作者欄位為 '-' 或空，嘗試從標題中提取 <原作者ID>
+        if (!authorText || authorText === '-') {
+            const originalAuthorMatch = titleHtml.match(/&lt;([^&]+)&gt;/);
+            if (originalAuthorMatch) {
+                authorText = originalAuthorMatch[1].trim();
             }
         }
+
+        // 若仍然沒有作者資訊，跳過
+        if (!authorText || authorText === '-') continue;
+
+        // 統計作者
+        authorCount[authorText] = (authorCount[authorText] || 0) + 1;
     }
+
     return { authorCount, hasInRange };
 }
 
+// 主流程
 async function main() {
     const seenArticleIds = new Set();
     const totalStats = {};
     let scannedPages = 0;
 
+    // 抓取最新頁
     if (FETCH_LATEST_PAGE) {
         console.log('抓取最新頁...');
         try {
@@ -95,6 +129,7 @@ async function main() {
         await sleep(DELAY_MS);
     }
 
+    // 向後翻頁
     for (let page = START_PAGE; page < START_PAGE + MAX_PAGES; page++) {
         const url = BASE_URL + `index${page}.html`;
         console.log(`抓取第 ${page} 頁...`);
@@ -116,7 +151,7 @@ async function main() {
 
     const output = {
         generatedAt: new Date().toISOString(),
-        mode: STAT_MODE,
+        mode: 'week',
         dateRange: dateRange,
         scannedPages: scannedPages,
         stats: totalStats
@@ -124,6 +159,7 @@ async function main() {
 
     fs.writeFileSync('stats.json', JSON.stringify(output, null, 2));
     console.log('stats.json 已更新。');
+    console.log(`統計區間：${dateRange.start} ~ ${dateRange.end}`);
 }
 
 function mergeStats(target, source) {
