@@ -5,7 +5,7 @@ const path = require('path');
 
 // ===== 可調參數 =====
 const FETCH_LATEST_PAGE = true;
-const START_PAGE = 3999;
+const START_PAGE = 3932;           // 刪除舊文後從3932開始是20260828起點
 const MAX_PAGES = 200;
 const EXTRA_PAGES = [4007];        // 額外指定頁碼（可自行增減）
 const DELAY_MS = 800;
