@@ -20,10 +20,15 @@
 
 ## 檔案結構
 .
+
 ├── .github/workflows/update_stats.yml # GitHub Actions 自動化設定
+
 ├── fetch_stats.js # 抓取與統計腳本
+
 ├── index.html # 前端顯示頁面
+
 ├── stats.json # 最新統計結果（供前端讀取）
+
 └── export/ # 歷史統計檔案（時間戳 JSON）
 
 
