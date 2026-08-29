@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTT e-coupon 作者統計</title>
+    <title>PTT e-coupon 本週作者統計</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 600px; margin: auto; }
+        .container { max-width: 700px; margin: auto; }
         h1 { text-align: center; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
         th { background-color: #f2f2f2; }
         .info { color: #666; font-size: 0.9em; text-align: center; }
+        .article-list { font-size: 0.8em; color: #555; margin-top: 5px; padding-left: 15px; }
+        .article-list span { display: block; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PTT e-coupon 板作者發文統計</h1>
+        <h1>PTT e-coupon 板本週作者發文統計</h1>
         <div id="info" class="info">載入中...</div>
         <table id="stats-table" style="display:none;">
             <thead>
-                <tr><th>作者</th><th>篇數</th></tr>
+                <tr><th>作者</th><th>篇數</th><th>文章 ID</th></tr>
             </thead>
             <tbody id="stats-body"></tbody>
         </table>
@@ -40,9 +42,10 @@
                     info.textContent += '（無資料）';
                 } else {
                     table.style.display = 'table';
-                    for (const [author, count] of entries) {
+                    for (const [author, infoObj] of entries) {
                         const row = document.createElement('tr');
-                        row.innerHTML = `<td>${author}</td><td>${count}</td>`;
+                        const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
+                        row.innerHTML = `<td>${author}</td><td>${infoObj.count}</td><td class="article-list">${idList}</td>`;
                         tbody.appendChild(row);
                     }
                 }
