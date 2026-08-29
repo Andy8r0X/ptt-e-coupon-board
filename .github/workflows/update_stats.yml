@@ -2,8 +2,11 @@ name: Update PTT Stats
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 每天 UTC 0 點執行
-  workflow_dispatch:      # 允許手動觸發
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write      # 關鍵：允許寫入 repository
 
 jobs:
   update-stats:
