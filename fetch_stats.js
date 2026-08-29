@@ -7,6 +7,7 @@ const path = require('path');
 const FETCH_LATEST_PAGE = true;
 const START_PAGE = 3999;
 const MAX_PAGES = 200;
+const EXTRA_PAGES = [4007];        // 額外指定頁碼（可自行增減）
 const DELAY_MS = 800;
 // ===================
 
@@ -92,7 +93,6 @@ function parsePage(html, seenArticleIds, authorData, pageLabel) {
         let isDeleted = false;
         let finalAuthor = authorText;
 
-        // 判斷是否為刪除文章（作者欄位為 '-' 或空）
         if (!finalAuthor || finalAuthor === '-') {
             const extracted = extractOriginalAuthor(titleHtml);
             if (extracted) {
@@ -101,7 +101,7 @@ function parsePage(html, seenArticleIds, authorData, pageLabel) {
                 console.log(`[${pageLabel}] 從標題提取作者：${finalAuthor}（文章 ${articleId}）`);
             } else {
                 console.warn(`[${pageLabel}] 無法從標題提取作者，文章 ID: ${articleId}，標題: ${titleHtml}`);
-                continue; // 仍無法取得作者，跳過
+                continue;
             }
         }
 
@@ -132,6 +132,7 @@ async function main() {
     const authorData = {};
     let scannedPages = 0;
 
+    // 1. 抓取最新頁
     if (FETCH_LATEST_PAGE) {
         console.log('抓取最新頁 index.html...');
         try {
@@ -144,6 +145,7 @@ async function main() {
         await sleep(DELAY_MS);
     }
 
+    // 2. 從 START_PAGE 開始向後翻頁
     for (let page = START_PAGE; page < START_PAGE + MAX_PAGES; page++) {
         const url = BASE_URL + `index${page}.html`;
         console.log(`抓取第 ${page} 頁（${url}）...`);
@@ -162,6 +164,21 @@ async function main() {
         }
     }
 
+    // 3. 抓取額外指定頁碼（避免遺漏）
+    for (const page of EXTRA_PAGES) {
+        if (page >= START_PAGE && page < START_PAGE + MAX_PAGES) continue; // 已抓過
+        const url = BASE_URL + `index${page}.html`;
+        console.log(`抓取額外頁 ${page}（${url}）...`);
+        try {
+            const html = await fetchPage(url);
+            parsePage(html, seenArticleIds, authorData, `額外第${page}頁`);
+            scannedPages++;
+            await sleep(DELAY_MS);
+        } catch (err) {
+            console.error(`額外頁 ${page} 抓取失敗:`, err);
+        }
+    }
+
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}`;
 
@@ -173,13 +190,11 @@ async function main() {
         stats: authorData
     };
 
-    // 寫入帶時間戳的檔案
     const exportDir = path.join(__dirname, 'export');
     fs.mkdirSync(exportDir, { recursive: true });
     const timestampFile = path.join(exportDir, `${timestamp}.json`);
     fs.writeFileSync(timestampFile, JSON.stringify(output, null, 2));
 
-    // 更新 stats.json（供前端讀取）
     fs.writeFileSync('stats.json', JSON.stringify(output, null, 2));
 
     console.log(`已輸出 ${timestampFile}`);
