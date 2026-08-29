@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTT e-coupon 作者統計</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .info { color: #666; font-size: 0.9em; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PTT e-coupon 板作者發文統計</h1>
+        <div id="info" class="info">載入中...</div>
+        <table id="stats-table" style="display:none;">
+            <thead>
+                <tr><th>作者</th><th>篇數</th></tr>
+            </thead>
+            <tbody id="stats-body"></tbody>
+        </table>
+    </div>
+    <script>
+        fetch('stats.json')
+            .then(res => res.json())
+            .then(data => {
+                const info = document.getElementById('info');
+                const table = document.getElementById('stats-table');
+                const tbody = document.getElementById('stats-body');
+                
+                info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
+                
+                const entries = Object.entries(data.stats).sort((a, b) => a[0].localeCompare(b[0]));
+                if (entries.length === 0) {
+                    info.textContent += '（無資料）';
+                } else {
+                    table.style.display = 'table';
+                    for (const [author, count] of entries) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${author}</td><td>${count}</td>`;
+                        tbody.appendChild(row);
+                    }
+                }
+            })
+            .catch(err => {
+                document.getElementById('info').textContent = '載入失敗：' + err.message;
+            });
+    </script>
+</body>
+</html>
