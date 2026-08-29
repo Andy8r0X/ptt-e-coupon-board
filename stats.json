@@ -1,10 +1,1038 @@
 {
-  "generatedAt": "2026-08-29T11:47:17.164Z",
+  "generatedAt": "2026-08-29T11:53:48.142Z",
   "mode": "week",
   "dateRange": {
     "start": "8/24",
     "end": "8/30"
   },
-  "scannedPages": 2,
-  "stats": {}
+  "scannedPages": 11,
+  "stats": {
+    "mnbre": {
+      "count": 1,
+      "articleIds": [
+        "M.1788002108.A.7AC"
+      ]
+    },
+    "ymjiris": {
+      "count": 1,
+      "articleIds": [
+        "M.1788002275.A.DEC"
+      ]
+    },
+    "ahwaahwa": {
+      "count": 1,
+      "articleIds": [
+        "M.1788002356.A.2CA"
+      ]
+    },
+    "vosle": {
+      "count": 1,
+      "articleIds": [
+        "M.1788002794.A.6FA"
+      ]
+    },
+    "gn01284355": {
+      "count": 1,
+      "articleIds": [
+        "M.1788003723.A.31D"
+      ]
+    },
+    "algorithm": {
+      "count": 1,
+      "articleIds": [
+        "M.1788004225.A.231"
+      ]
+    },
+    "kawsovo": {
+      "count": 1,
+      "articleIds": [
+        "M.1788004232.A.974"
+      ]
+    },
+    "goamozoe": {
+      "count": 1,
+      "articleIds": [
+        "M.1788004295.A.999"
+      ]
+    },
+    "jasome": {
+      "count": 6,
+      "articleIds": [
+        "M.1787980533.A.360",
+        "M.1787895252.A.DFD",
+        "M.1787895294.A.BB0",
+        "M.1787895759.A.874",
+        "M.1787896162.A.D88",
+        "M.1787988401.A.E25"
+      ]
+    },
+    "andy199113": {
+      "count": 3,
+      "articleIds": [
+        "M.1787994820.A.11E",
+        "M.1787998760.A.8F5",
+        "M.1787998786.A.8B5"
+      ]
+    },
+    "ksirf": {
+      "count": 1,
+      "articleIds": [
+        "M.1787954871.A.DA5"
+      ]
+    },
+    "qwermtv": {
+      "count": 1,
+      "articleIds": [
+        "M.1787957153.A.EA7"
+      ]
+    },
+    "viewstock": {
+      "count": 1,
+      "articleIds": [
+        "M.1787957976.A.E99"
+      ]
+    },
+    "IoverIover": {
+      "count": 1,
+      "articleIds": [
+        "M.1787958118.A.015"
+      ]
+    },
+    "linjerry0418": {
+      "count": 1,
+      "articleIds": [
+        "M.1787958279.A.14E"
+      ]
+    },
+    "didi7002": {
+      "count": 1,
+      "articleIds": [
+        "M.1787958459.A.F35"
+      ]
+    },
+    "essc6402xyz": {
+      "count": 1,
+      "articleIds": [
+        "M.1787958777.A.990"
+      ]
+    },
+    "usmaik": {
+      "count": 1,
+      "articleIds": [
+        "M.1787960842.A.D5C"
+      ]
+    },
+    "za789": {
+      "count": 1,
+      "articleIds": [
+        "M.1787961852.A.86C"
+      ]
+    },
+    "freeawei": {
+      "count": 1,
+      "articleIds": [
+        "M.1787962021.A.774"
+      ]
+    },
+    "wowfu": {
+      "count": 1,
+      "articleIds": [
+        "M.1787962252.A.5B9"
+      ]
+    },
+    "WeienC": {
+      "count": 1,
+      "articleIds": [
+        "M.1787962351.A.FD6"
+      ]
+    },
+    "maxliou79": {
+      "count": 1,
+      "articleIds": [
+        "M.1787962514.A.918"
+      ]
+    },
+    "sunways": {
+      "count": 1,
+      "articleIds": [
+        "M.1787962617.A.4EA"
+      ]
+    },
+    "hitsukiaoi": {
+      "count": 1,
+      "articleIds": [
+        "M.1787962659.A.909"
+      ]
+    },
+    "lairichard08": {
+      "count": 1,
+      "articleIds": [
+        "M.1787963702.A.3C8"
+      ]
+    },
+    "pam7": {
+      "count": 1,
+      "articleIds": [
+        "M.1787964004.A.468"
+      ]
+    },
+    "milka718": {
+      "count": 1,
+      "articleIds": [
+        "M.1787964368.A.E00"
+      ]
+    },
+    "a163092429": {
+      "count": 1,
+      "articleIds": [
+        "M.1787964821.A.7C7"
+      ]
+    },
+    "psychebinich": {
+      "count": 1,
+      "articleIds": [
+        "M.1787965673.A.8AD"
+      ]
+    },
+    "Zack0606": {
+      "count": 1,
+      "articleIds": [
+        "M.1787966406.A.E1D"
+      ]
+    },
+    "shisei": {
+      "count": 1,
+      "articleIds": [
+        "M.1787966573.A.D8F"
+      ]
+    },
+    "manson12228": {
+      "count": 1,
+      "articleIds": [
+        "M.1787966972.A.088"
+      ]
+    },
+    "hao7208": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967064.A.F17"
+      ]
+    },
+    "njvkhljulk": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967236.A.FE5"
+      ]
+    },
+    "chdc": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967605.A.483"
+      ]
+    },
+    "Jonas0203": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967663.A.7F2"
+      ]
+    },
+    "rich2014": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967819.A.ACE"
+      ]
+    },
+    "livana": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967839.A.3E8"
+      ]
+    },
+    "mygreenair": {
+      "count": 1,
+      "articleIds": [
+        "M.1787967849.A.B02"
+      ]
+    },
+    "jay313": {
+      "count": 1,
+      "articleIds": [
+        "M.1787968546.A.FCA"
+      ]
+    },
+    "hl6rup3": {
+      "count": 1,
+      "articleIds": [
+        "M.1787968831.A.000"
+      ]
+    },
+    "cavalierray": {
+      "count": 1,
+      "articleIds": [
+        "M.1787969058.A.A92"
+      ]
+    },
+    "nobodyshare": {
+      "count": 1,
+      "articleIds": [
+        "M.1787969459.A.9D4"
+      ]
+    },
+    "jasonwu1988": {
+      "count": 1,
+      "articleIds": [
+        "M.1787969591.A.C28"
+      ]
+    },
+    "f9214428mo": {
+      "count": 1,
+      "articleIds": [
+        "M.1787970332.A.480"
+      ]
+    },
+    "meng1231": {
+      "count": 1,
+      "articleIds": [
+        "M.1787970417.A.2BF"
+      ]
+    },
+    "sayauser": {
+      "count": 1,
+      "articleIds": [
+        "M.1787970461.A.388"
+      ]
+    },
+    "ab20912": {
+      "count": 1,
+      "articleIds": [
+        "M.1787970557.A.B58"
+      ]
+    },
+    "sunenjoying": {
+      "count": 1,
+      "articleIds": [
+        "M.1787970849.A.1AE"
+      ]
+    },
+    "papau": {
+      "count": 1,
+      "articleIds": [
+        "M.1787971876.A.5AC"
+      ]
+    },
+    "yabaleo": {
+      "count": 1,
+      "articleIds": [
+        "M.1787972065.A.931"
+      ]
+    },
+    "funsong": {
+      "count": 1,
+      "articleIds": [
+        "M.1787972138.A.4D2"
+      ]
+    },
+    "Xesn": {
+      "count": 1,
+      "articleIds": [
+        "M.1787972543.A.0C7"
+      ]
+    },
+    "evilufox": {
+      "count": 1,
+      "articleIds": [
+        "M.1787972733.A.75E"
+      ]
+    },
+    "danny80611": {
+      "count": 1,
+      "articleIds": [
+        "M.1787972855.A.B9C"
+      ]
+    },
+    "asir49": {
+      "count": 1,
+      "articleIds": [
+        "M.1787973038.A.2C8"
+      ]
+    },
+    "k1000a": {
+      "count": 1,
+      "articleIds": [
+        "M.1787973101.A.D54"
+      ]
+    },
+    "s37312992": {
+      "count": 1,
+      "articleIds": [
+        "M.1787973387.A.780"
+      ]
+    },
+    "dreamEden": {
+      "count": 1,
+      "articleIds": [
+        "M.1787973392.A.8A9"
+      ]
+    },
+    "mosh": {
+      "count": 1,
+      "articleIds": [
+        "M.1787973660.A.735"
+      ]
+    },
+    "weldon": {
+      "count": 1,
+      "articleIds": [
+        "M.1787974088.A.258"
+      ]
+    },
+    "toping": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975207.A.374"
+      ]
+    },
+    "alag": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975284.A.F78"
+      ]
+    },
+    "immence": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975288.A.DC0"
+      ]
+    },
+    "amber8129": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975350.A.94D"
+      ]
+    },
+    "chon": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975361.A.AA0"
+      ]
+    },
+    "rtwodtwo": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975508.A.B3B"
+      ]
+    },
+    "DaToBin": {
+      "count": 1,
+      "articleIds": [
+        "M.1787975560.A.842"
+      ]
+    },
+    "seifer007": {
+      "count": 1,
+      "articleIds": [
+        "M.1787976023.A.8F9"
+      ]
+    },
+    "NMBILL": {
+      "count": 1,
+      "articleIds": [
+        "M.1787976231.A.F7A"
+      ]
+    },
+    "jazz3939889": {
+      "count": 1,
+      "articleIds": [
+        "M.1787976284.A.26B"
+      ]
+    },
+    "sky900928": {
+      "count": 1,
+      "articleIds": [
+        "M.1787976537.A.35A"
+      ]
+    },
+    "tungyuan": {
+      "count": 1,
+      "articleIds": [
+        "M.1787976714.A.6F8"
+      ]
+    },
+    "tomoti": {
+      "count": 1,
+      "articleIds": [
+        "M.1787977074.A.5D4"
+      ]
+    },
+    "bolo": {
+      "count": 1,
+      "articleIds": [
+        "M.1787977146.A.575"
+      ]
+    },
+    "tpc228": {
+      "count": 1,
+      "articleIds": [
+        "M.1787977167.A.68E"
+      ]
+    },
+    "ohpa": {
+      "count": 1,
+      "articleIds": [
+        "M.1787977185.A.F96"
+      ]
+    },
+    "yangkeke": {
+      "count": 1,
+      "articleIds": [
+        "M.1787977597.A.F1A"
+      ]
+    },
+    "dell7537te": {
+      "count": 1,
+      "articleIds": [
+        "M.1787978045.A.E65"
+      ]
+    },
+    "seohyde": {
+      "count": 1,
+      "articleIds": [
+        "M.1787978311.A.6C7"
+      ]
+    },
+    "nuvoton": {
+      "count": 1,
+      "articleIds": [
+        "M.1787978344.A.7A9"
+      ]
+    },
+    "snew1209": {
+      "count": 1,
+      "articleIds": [
+        "M.1787978562.A.DA0"
+      ]
+    },
+    "kknj": {
+      "count": 1,
+      "articleIds": [
+        "M.1787978806.A.1D2"
+      ]
+    },
+    "COSMED2021": {
+      "count": 1,
+      "articleIds": [
+        "M.1787978872.A.F31"
+      ]
+    },
+    "Econman": {
+      "count": 1,
+      "articleIds": [
+        "M.1787979039.A.3FB"
+      ]
+    },
+    "RyougiShiki": {
+      "count": 1,
+      "articleIds": [
+        "M.1787979283.A.0E0"
+      ]
+    },
+    "shengchuan": {
+      "count": 1,
+      "articleIds": [
+        "M.1787979298.A.E17"
+      ]
+    },
+    "KaMiRyuu": {
+      "count": 1,
+      "articleIds": [
+        "M.1787980317.A.D40"
+      ]
+    },
+    "tshe628": {
+      "count": 1,
+      "articleIds": [
+        "M.1787980916.A.171"
+      ]
+    },
+    "luckycan": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981305.A.E15"
+      ]
+    },
+    "tai32": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981438.A.C86"
+      ]
+    },
+    "fafalee": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981473.A.573"
+      ]
+    },
+    "hjallen121": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981555.A.5BA"
+      ]
+    },
+    "bagpiper": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981571.A.821"
+      ]
+    },
+    "hsu0901": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981676.A.750"
+      ]
+    },
+    "Hewes": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981777.A.22B"
+      ]
+    },
+    "gj8329": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981829.A.828"
+      ]
+    },
+    "qwedc04": {
+      "count": 1,
+      "articleIds": [
+        "M.1787981992.A.170"
+      ]
+    },
+    "Tonnny": {
+      "count": 1,
+      "articleIds": [
+        "M.1787982218.A.AF5"
+      ]
+    },
+    "Hou0806": {
+      "count": 1,
+      "articleIds": [
+        "M.1787982392.A.A2F"
+      ]
+    },
+    "gearwar626": {
+      "count": 1,
+      "articleIds": [
+        "M.1787982964.A.B91"
+      ]
+    },
+    "Gazza555": {
+      "count": 1,
+      "articleIds": [
+        "M.1787983074.A.0E1"
+      ]
+    },
+    "passenger10": {
+      "count": 1,
+      "articleIds": [
+        "M.1787983193.A.E1F"
+      ]
+    },
+    "willie1987": {
+      "count": 1,
+      "articleIds": [
+        "M.1787983392.A.4A5"
+      ]
+    },
+    "joe0117": {
+      "count": 1,
+      "articleIds": [
+        "M.1787984194.A.878"
+      ]
+    },
+    "modar1219": {
+      "count": 1,
+      "articleIds": [
+        "M.1787984261.A.17E"
+      ]
+    },
+    "royroyaaa": {
+      "count": 1,
+      "articleIds": [
+        "M.1787984441.A.F1E"
+      ]
+    },
+    "toic": {
+      "count": 1,
+      "articleIds": [
+        "M.1787984725.A.7F0"
+      ]
+    },
+    "June93": {
+      "count": 1,
+      "articleIds": [
+        "M.1787984753.A.ACF"
+      ]
+    },
+    "hpob61320": {
+      "count": 1,
+      "articleIds": [
+        "M.1787985313.A.7E0"
+      ]
+    },
+    "li5410": {
+      "count": 1,
+      "articleIds": [
+        "M.1787985554.A.2FB"
+      ]
+    },
+    "kivenQQ": {
+      "count": 1,
+      "articleIds": [
+        "M.1787985634.A.ACC"
+      ]
+    },
+    "venusto": {
+      "count": 1,
+      "articleIds": [
+        "M.1787985804.A.962"
+      ]
+    },
+    "fbifxxkma": {
+      "count": 1,
+      "articleIds": [
+        "M.1787985937.A.1EF"
+      ]
+    },
+    "hunghunghung": {
+      "count": 1,
+      "articleIds": [
+        "M.1787986025.A.E61"
+      ]
+    },
+    "dreamhigh": {
+      "count": 1,
+      "articleIds": [
+        "M.1787986063.A.0FE"
+      ]
+    },
+    "justbefriend": {
+      "count": 1,
+      "articleIds": [
+        "M.1787986245.A.236"
+      ]
+    },
+    "aaafish": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987080.A.C24"
+      ]
+    },
+    "irising": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987158.A.C04"
+      ]
+    },
+    "icegail": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987354.A.655"
+      ]
+    },
+    "a00rz": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987420.A.4BA"
+      ]
+    },
+    "yllul": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987763.A.C30"
+      ]
+    },
+    "al7868": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987809.A.561"
+      ]
+    },
+    "koko55688": {
+      "count": 1,
+      "articleIds": [
+        "M.1787987932.A.57F"
+      ]
+    },
+    "ss2893128": {
+      "count": 1,
+      "articleIds": [
+        "M.1787988623.A.F20"
+      ]
+    },
+    "sopqueen": {
+      "count": 1,
+      "articleIds": [
+        "M.1787988656.A.EAD"
+      ]
+    },
+    "o3o778899": {
+      "count": 1,
+      "articleIds": [
+        "M.1787988717.A.F11"
+      ]
+    },
+    "twwangwang": {
+      "count": 1,
+      "articleIds": [
+        "M.1787989022.A.B74"
+      ]
+    },
+    "ajkeh": {
+      "count": 1,
+      "articleIds": [
+        "M.1787989192.A.509"
+      ]
+    },
+    "linhuang": {
+      "count": 1,
+      "articleIds": [
+        "M.1787989289.A.425"
+      ]
+    },
+    "kurtman": {
+      "count": 1,
+      "articleIds": [
+        "M.1787989366.A.F94"
+      ]
+    },
+    "sandy790202": {
+      "count": 1,
+      "articleIds": [
+        "M.1787989422.A.45A"
+      ]
+    },
+    "ytm4444": {
+      "count": 1,
+      "articleIds": [
+        "M.1787990038.A.310"
+      ]
+    },
+    "tcc080206": {
+      "count": 1,
+      "articleIds": [
+        "M.1787990149.A.6AE"
+      ]
+    },
+    "pyed": {
+      "count": 1,
+      "articleIds": [
+        "M.1787990446.A.04F"
+      ]
+    },
+    "bob301833": {
+      "count": 1,
+      "articleIds": [
+        "M.1787990654.A.B01"
+      ]
+    },
+    "askoda": {
+      "count": 1,
+      "articleIds": [
+        "M.1787990870.A.8FE"
+      ]
+    },
+    "Hbodo": {
+      "count": 1,
+      "articleIds": [
+        "M.1787991293.A.456"
+      ]
+    },
+    "amberger777": {
+      "count": 1,
+      "articleIds": [
+        "M.1787991312.A.FA4"
+      ]
+    },
+    "sin70": {
+      "count": 1,
+      "articleIds": [
+        "M.1787991314.A.E35"
+      ]
+    },
+    "rebel20163": {
+      "count": 1,
+      "articleIds": [
+        "M.1787991770.A.E00"
+      ]
+    },
+    "pinkbow2": {
+      "count": 1,
+      "articleIds": [
+        "M.1787991903.A.4A8"
+      ]
+    },
+    "eyang7878": {
+      "count": 1,
+      "articleIds": [
+        "M.1787991999.A.895"
+      ]
+    },
+    "x999": {
+      "count": 1,
+      "articleIds": [
+        "M.1787992091.A.60D"
+      ]
+    },
+    "kanly": {
+      "count": 1,
+      "articleIds": [
+        "M.1787992181.A.C08"
+      ]
+    },
+    "hijk12345200": {
+      "count": 1,
+      "articleIds": [
+        "M.1787992194.A.F1C"
+      ]
+    },
+    "ckfh101": {
+      "count": 1,
+      "articleIds": [
+        "M.1787992483.A.D9C"
+      ]
+    },
+    "summerrain86": {
+      "count": 1,
+      "articleIds": [
+        "M.1787992880.A.455"
+      ]
+    },
+    "ccccpppp": {
+      "count": 1,
+      "articleIds": [
+        "M.1787993539.A.6AC"
+      ]
+    },
+    "z855434": {
+      "count": 1,
+      "articleIds": [
+        "M.1787993761.A.D78"
+      ]
+    },
+    "az7553714": {
+      "count": 1,
+      "articleIds": [
+        "M.1787994430.A.4A4"
+      ]
+    },
+    "maxjacky": {
+      "count": 1,
+      "articleIds": [
+        "M.1787994930.A.553"
+      ]
+    },
+    "cat8heart": {
+      "count": 1,
+      "articleIds": [
+        "M.1787994944.A.633"
+      ]
+    },
+    "frank20415": {
+      "count": 1,
+      "articleIds": [
+        "M.1787995461.A.B4D"
+      ]
+    },
+    "opieop": {
+      "count": 1,
+      "articleIds": [
+        "M.1787995693.A.8ED"
+      ]
+    },
+    "horard": {
+      "count": 1,
+      "articleIds": [
+        "M.1787996340.A.C2C"
+      ]
+    },
+    "celes0125": {
+      "count": 1,
+      "articleIds": [
+        "M.1787996463.A.612"
+      ]
+    },
+    "k7770721": {
+      "count": 1,
+      "articleIds": [
+        "M.1787996510.A.E3E"
+      ]
+    },
+    "yabexaxis": {
+      "count": 1,
+      "articleIds": [
+        "M.1787996979.A.FDF"
+      ]
+    },
+    "pttkiller": {
+      "count": 1,
+      "articleIds": [
+        "M.1787997182.A.098"
+      ]
+    },
+    "arl616": {
+      "count": 1,
+      "articleIds": [
+        "M.1787998197.A.FC9"
+      ]
+    },
+    "yenchem": {
+      "count": 1,
+      "articleIds": [
+        "M.1787998375.A.E84"
+      ]
+    },
+    "fgj": {
+      "count": 1,
+      "articleIds": [
+        "M.1787998997.A.868"
+      ]
+    },
+    "yinchan": {
+      "count": 1,
+      "articleIds": [
+        "M.1787999251.A.943"
+      ]
+    },
+    "msama": {
+      "count": 1,
+      "articleIds": [
+        "M.1787999461.A.CD3"
+      ]
+    },
+    "mcct": {
+      "count": 1,
+      "articleIds": [
+        "M.1788000631.A.55F"
+      ]
+    },
+    "Jimmy123440": {
+      "count": 1,
+      "articleIds": [
+        "M.1788001045.A.B70"
+      ]
+    },
+    "a10860517": {
+      "count": 1,
+      "articleIds": [
+        "M.1788001061.A.8C1"
+      ]
+    },
+    "zerosirius": {
+      "count": 1,
+      "articleIds": [
+        "M.1788001757.A.AE8"
+      ]
+    }
+  }
 }
