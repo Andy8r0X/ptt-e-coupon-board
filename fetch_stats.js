@@ -5,10 +5,10 @@ const https = require('https');
 const fs = require('fs');
 
 // ===== 可調參數 =====
-const FETCH_LATEST_PAGE = true;   // 抓取最新頁
-const START_PAGE = 3999;          // 從此頁開始向後抓
-const MAX_PAGES = 50;             // 最多向後抓幾頁
-const DELAY_MS = 800;             // 請求延遲
+const FETCH_LATEST_PAGE = true;   // 抓取最新頁 index.html
+const START_PAGE = 3999;          // 從此頁開始向後抓（頁碼增加）
+const MAX_PAGES = 100;            // 從 START_PAGE 起最多抓幾頁（安全上限）
+const DELAY_MS = 800;             // 請求延遲毫秒
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
@@ -98,8 +98,9 @@ async function main() {
     const authorData = {};
     let scannedPages = 0;
 
+    // 1. 抓取最新頁
     if (FETCH_LATEST_PAGE) {
-        console.log('抓取最新頁...');
+        console.log('抓取最新頁 index.html...');
         try {
             const html = await fetchPage(BASE_URL + 'index.html');
             parsePage(html, seenArticleIds, authorData);
@@ -110,9 +111,10 @@ async function main() {
         await sleep(DELAY_MS);
     }
 
+    // 2. 從 START_PAGE 開始向後翻頁（頁碼增加）
     for (let page = START_PAGE; page < START_PAGE + MAX_PAGES; page++) {
         const url = BASE_URL + `index${page}.html`;
-        console.log(`抓取第 ${page} 頁...`);
+        console.log(`抓取第 ${page} 頁（${url}）...`);
         try {
             const html = await fetchPage(url);
             const { hasInRange } = parsePage(html, seenArticleIds, authorData);
