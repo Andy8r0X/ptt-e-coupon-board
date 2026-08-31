@@ -17,7 +17,7 @@
         .toolbar button {
             margin: 0 5px; padding: 12px 24px; cursor: pointer;
             background: #4CAF50; color: white; border: none; border-radius: 6px;
-            font-size: 18px; font-weight: bold;
+            font-size: 16px; font-weight: bold;
         }
         .toolbar button:hover { background: #45a049; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -28,24 +28,11 @@
         .article-list span { display: block; }
         .deleted-badge { font-weight: bold; color: #c00; }
         .high-count { color: red; }
-        .nav-buttons { text-align: center; margin-bottom: 10px; }
-        .nav-buttons button {
-            padding: 12px 24px; margin: 5px; font-size: 18px;
-            cursor: pointer; border: 2px solid #4CAF50; background: white;
-            color: #4CAF50; border-radius: 6px; font-weight: bold;
-        }
-        .nav-buttons button.active {
-            background: #4CAF50; color: white;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>PTT e-coupon 板作者發文統計</h1>
-        <div class="nav-buttons">
-            <button id="btn-current" class="active">目前統計</button>
-            <button id="btn-last-week">上週統計</button>
-        </div>
         <div id="info" class="info">載入中...</div>
         <div id="highlight" class="highlight-box" style="display:none;">
             <h2>🔥 超過 1 篇的作者</h2>
@@ -63,25 +50,20 @@
         </table>
     </div>
     <script>
-        let currentStatsData = null;
-        let currentMode = 'current';
+        let statsData = null;
 
-        function loadStats(url, mode) {
-            fetch(url)
-                .then(res => {
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    return res.json();
-                })
-                .then(data => {
-                    currentStatsData = data;
-                    currentMode = mode;
-                    render(data);
-                    updateButtonState();
-                })
-                .catch(err => {
-                    document.getElementById('info').textContent = '載入失敗：' + err.message;
-                });
-        }
+        fetch('stats.json')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                statsData = data;
+                render(data);
+            })
+            .catch(err => {
+                document.getElementById('info').textContent = '載入失敗：' + err.message;
+            });
 
         function render(data) {
             const info = document.getElementById('info');
@@ -133,37 +115,10 @@
             }
         }
 
-        function updateButtonState() {
-            const btnCurrent = document.getElementById('btn-current');
-            const btnLastWeek = document.getElementById('btn-last-week');
-            btnCurrent.classList.remove('active');
-            btnLastWeek.classList.remove('active');
-            if (currentMode === 'current') {
-                btnCurrent.classList.add('active');
-                btnCurrent.textContent = `目前統計 (${currentStatsData.dateRange.start}-${currentStatsData.dateRange.end})`;
-                btnLastWeek.textContent = '上週統計';
-            } else {
-                btnLastWeek.classList.add('active');
-                btnLastWeek.textContent = `上週統計 (${currentStatsData.dateRange.start}-${currentStatsData.dateRange.end})`;
-                btnCurrent.textContent = '目前統計';
-            }
-        }
-
-        document.getElementById('btn-current').addEventListener('click', () => {
-            loadStats('stats.json', 'current');
-        });
-        document.getElementById('btn-last-week').addEventListener('click', () => {
-            loadStats('last_week.json', 'lastWeek');
-        });
-
-        // 初始載入目前統計
-        loadStats('stats.json', 'current');
-
-        // 匯出功能
         document.getElementById('export-csv').addEventListener('click', () => {
-            if (!currentStatsData) return;
+            if (!statsData) return;
             const rows = [['作者', '總篇數', '正常篇數', '刪除篇數', '文章ID']];
-            for (const [author, infoObj] of Object.entries(currentStatsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
                 rows.push([author, infoObj.count, infoObj.normalCount, infoObj.deletedCount, infoObj.articleIds.join(' ')]);
             }
             const csvContent = rows.map(row => row.join(',')).join('\n');
@@ -171,9 +126,9 @@
         });
 
         document.getElementById('export-xls').addEventListener('click', () => {
-            if (!currentStatsData) return;
+            if (!statsData) return;
             let html = '<table border="1"><tr><th>作者</th><th>總篇數</th><th>正常篇數</th><th>刪除篇數</th><th>文章ID</th></tr>';
-            for (const [author, infoObj] of Object.entries(currentStatsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
                 html += `<tr><td>${author}</td><td>${infoObj.count}</td><td>${infoObj.normalCount}</td><td>${infoObj.deletedCount}</td><td>${infoObj.articleIds.join('<br>')}</td></tr>`;
             }
             html += '</table>';
