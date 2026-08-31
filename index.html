@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTT e-coupon 本週作者統計</title>
+    <title>PTT e-coupon 作者統計</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 700px; margin: auto; }
         h1 { text-align: center; }
+        .highlight-box {
+            background: #f9f9f9; border: 2px solid #4CAF50; padding: 10px;
+            margin: 10px 0; border-radius: 5px;
+        }
+        .highlight-box h2 { margin: 0 0 5px 0; font-size: 1.1em; color: #333; }
         .toolbar { text-align: center; margin: 10px 0; }
         .toolbar button {
             margin: 0 5px; padding: 8px 16px; cursor: pointer;
@@ -21,19 +26,23 @@
         .info { color: #666; font-size: 0.9em; text-align: center; }
         .article-list { font-size: 0.8em; color: #555; margin-top: 5px; padding-left: 15px; }
         .article-list span { display: block; }
-        .deleted-badge {
-            font-weight: bold;
-            color: #c00;
-        }
-        .high-count {
-            color: red;
-        }
+        .deleted-badge { font-weight: bold; color: #c00; }
+        .high-count { color: red; }
+        .nav-buttons { text-align: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PTT e-coupon 板本週作者發文統計</h1>
+        <h1>PTT e-coupon 板作者發文統計</h1>
+        <div class="nav-buttons">
+            <button id="btn-current">目前統計</button>
+            <button id="btn-last-week">上週統計</button>
+        </div>
         <div id="info" class="info">載入中...</div>
+        <div id="highlight" class="highlight-box" style="display:none;">
+            <h2>🔥 超過 1 篇的作者</h2>
+            <div id="highlight-content"></div>
+        </div>
         <div class="toolbar" id="toolbar" style="display:none;">
             <button id="export-csv">匯出 CSV</button>
             <button id="export-xls">匯出 XLS</button>
@@ -46,49 +55,94 @@
         </table>
     </div>
     <script>
-        let statsData = null;
+        let currentStatsData = null;      // 目前顯示的資料
+        let currentMode = 'current';      // 'current' 或 'lastWeek'
 
-        fetch('stats.json')
-            .then(res => res.json())
-            .then(data => {
-                statsData = data;
-                const info = document.getElementById('info');
-                const table = document.getElementById('stats-table');
-                const tbody = document.getElementById('stats-body');
-                const toolbar = document.getElementById('toolbar');
+        function loadStats(url) {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    currentStatsData = data;
+                    render(data);
+                })
+                .catch(err => {
+                    document.getElementById('info').textContent = '載入失敗：' + err.message;
+                });
+        }
 
-                info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
-                
-                const entries = Object.entries(data.stats).sort((a, b) => a[0].localeCompare(b[0]));
-                if (entries.length === 0) {
-                    info.textContent += '（無資料）';
-                } else {
-                    table.style.display = 'table';
-                    toolbar.style.display = 'block';
-                    for (const [author, infoObj] of entries) {
-                        const row = document.createElement('tr');
-                        const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
-                        let countDisplay = `${infoObj.count}`;
-                        if (infoObj.deletedCount > 0) {
-                            countDisplay += ` <span class="deleted-badge">(刪除${infoObj.deletedCount})</span>`;
-                        }
-                        // 若總篇數大於 2，整列文字變紅色
-                        if (infoObj.count > 2) {
-                            row.classList.add('high-count');
-                        }
-                        row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
-                        tbody.appendChild(row);
+        function render(data) {
+            const info = document.getElementById('info');
+            const table = document.getElementById('stats-table');
+            const tbody = document.getElementById('stats-body');
+            const toolbar = document.getElementById('toolbar');
+            const highlightBox = document.getElementById('highlight');
+            const highlightContent = document.getElementById('highlight-content');
+
+            info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
+
+            // 清空表格
+            tbody.innerHTML = '';
+            // 清空重點框
+            highlightContent.innerHTML = '';
+
+            const entries = Object.entries(data.stats).sort((a, b) => a[0].localeCompare(b[0]));
+            if (entries.length === 0) {
+                info.textContent += '（無資料）';
+                table.style.display = 'none';
+                toolbar.style.display = 'none';
+                highlightBox.style.display = 'none';
+            } else {
+                table.style.display = 'table';
+                toolbar.style.display = 'block';
+                // 填表格
+                for (const [author, infoObj] of entries) {
+                    const row = document.createElement('tr');
+                    const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
+                    let countDisplay = `${infoObj.count}`;
+                    if (infoObj.deletedCount > 0) {
+                        countDisplay += ` <span class="deleted-badge">(刪除${infoObj.deletedCount})</span>`;
                     }
+                    if (infoObj.count > 2) {
+                        row.classList.add('high-count');
+                    }
+                    row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
+                    tbody.appendChild(row);
                 }
-            })
-            .catch(err => {
-                document.getElementById('info').textContent = '載入失敗：' + err.message;
-            });
+                // 填重點框（超過1篇）
+                const highlightAuthors = entries.filter(([author, infoObj]) => infoObj.count > 1);
+                if (highlightAuthors.length > 0) {
+                    highlightBox.style.display = 'block';
+                    let html = '';
+                    for (const [author, infoObj] of highlightAuthors) {
+                        html += `<span style="font-weight:bold;">${author}</span>：${infoObj.count}篇`;
+                        if (infoObj.deletedCount > 0) html += `（刪除${infoObj.deletedCount}）`;
+                        html += '<br>';
+                    }
+                    highlightContent.innerHTML = html;
+                } else {
+                    highlightBox.style.display = 'none';
+                }
+            }
+        }
 
+        // 按鈕切換
+        document.getElementById('btn-current').addEventListener('click', () => {
+            currentMode = 'current';
+            loadStats('stats.json');
+        });
+        document.getElementById('btn-last-week').addEventListener('click', () => {
+            currentMode = 'lastWeek';
+            loadStats('last_week.json');
+        });
+
+        // 初始載入目前統計
+        loadStats('stats.json');
+
+        // 匯出功能（使用 currentStatsData）
         document.getElementById('export-csv').addEventListener('click', () => {
-            if (!statsData) return;
+            if (!currentStatsData) return;
             const rows = [['作者', '總篇數', '正常篇數', '刪除篇數', '文章ID']];
-            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+            for (const [author, infoObj] of Object.entries(currentStatsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
                 rows.push([author, infoObj.count, infoObj.normalCount, infoObj.deletedCount, infoObj.articleIds.join(' ')]);
             }
             const csvContent = rows.map(row => row.join(',')).join('\n');
@@ -96,9 +150,9 @@
         });
 
         document.getElementById('export-xls').addEventListener('click', () => {
-            if (!statsData) return;
+            if (!currentStatsData) return;
             let html = '<table border="1"><tr><th>作者</th><th>總篇數</th><th>正常篇數</th><th>刪除篇數</th><th>文章ID</th></tr>';
-            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+            for (const [author, infoObj] of Object.entries(currentStatsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
                 html += `<tr><td>${author}</td><td>${infoObj.count}</td><td>${infoObj.normalCount}</td><td>${infoObj.deletedCount}</td><td>${infoObj.articleIds.join('<br>')}</td></tr>`;
             }
             html += '</table>';
@@ -110,7 +164,6 @@
             const blob = new Blob([content], { type: mime });
             downloadBlob(blob, filename);
         }
-
         function downloadBlob(blob, filename) {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
