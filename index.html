@@ -6,7 +6,7 @@
     <title>PTT e-coupon 作者統計</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 700px; margin: auto; }
+        .container { max-width: 800px; margin: auto; }
         h1 { text-align: center; }
         .highlight-box {
             background: #f9f9f9; border: 2px solid #4CAF50; padding: 10px;
@@ -15,9 +15,9 @@
         .highlight-box h2 { margin: 0 0 5px 0; font-size: 1.1em; color: #333; }
         .toolbar { text-align: center; margin: 10px 0; }
         .toolbar button {
-            margin: 0 5px; padding: 8px 16px; cursor: pointer;
-            background: #4CAF50; color: white; border: none; border-radius: 4px;
-            font-size: 14px;
+            margin: 0 5px; padding: 12px 24px; cursor: pointer;
+            background: #4CAF50; color: white; border: none; border-radius: 6px;
+            font-size: 18px; font-weight: bold;
         }
         .toolbar button:hover { background: #45a049; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -29,13 +29,21 @@
         .deleted-badge { font-weight: bold; color: #c00; }
         .high-count { color: red; }
         .nav-buttons { text-align: center; margin-bottom: 10px; }
+        .nav-buttons button {
+            padding: 12px 24px; margin: 5px; font-size: 18px;
+            cursor: pointer; border: 2px solid #4CAF50; background: white;
+            color: #4CAF50; border-radius: 6px; font-weight: bold;
+        }
+        .nav-buttons button.active {
+            background: #4CAF50; color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>PTT e-coupon 板作者發文統計</h1>
         <div class="nav-buttons">
-            <button id="btn-current">目前統計</button>
+            <button id="btn-current" class="active">目前統計</button>
             <button id="btn-last-week">上週統計</button>
         </div>
         <div id="info" class="info">載入中...</div>
@@ -55,15 +63,20 @@
         </table>
     </div>
     <script>
-        let currentStatsData = null;      // 目前顯示的資料
-        let currentMode = 'current';      // 'current' 或 'lastWeek'
+        let currentStatsData = null;
+        let currentMode = 'current';
 
-        function loadStats(url) {
+        function loadStats(url, mode) {
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
                     currentStatsData = data;
+                    currentMode = mode;
                     render(data);
+                    updateButtonState();
                 })
                 .catch(err => {
                     document.getElementById('info').textContent = '載入失敗：' + err.message;
@@ -79,10 +92,7 @@
             const highlightContent = document.getElementById('highlight-content');
 
             info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
-
-            // 清空表格
             tbody.innerHTML = '';
-            // 清空重點框
             highlightContent.innerHTML = '';
 
             const entries = Object.entries(data.stats).sort((a, b) => a[0].localeCompare(b[0]));
@@ -94,7 +104,6 @@
             } else {
                 table.style.display = 'table';
                 toolbar.style.display = 'block';
-                // 填表格
                 for (const [author, infoObj] of entries) {
                     const row = document.createElement('tr');
                     const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
@@ -108,8 +117,7 @@
                     row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
                     tbody.appendChild(row);
                 }
-                // 填重點框（超過1篇）
-                const highlightAuthors = entries.filter(([author, infoObj]) => infoObj.count > 1);
+                const highlightAuthors = entries.filter(([, infoObj]) => infoObj.count > 1);
                 if (highlightAuthors.length > 0) {
                     highlightBox.style.display = 'block';
                     let html = '';
@@ -125,20 +133,33 @@
             }
         }
 
-        // 按鈕切換
+        function updateButtonState() {
+            const btnCurrent = document.getElementById('btn-current');
+            const btnLastWeek = document.getElementById('btn-last-week');
+            btnCurrent.classList.remove('active');
+            btnLastWeek.classList.remove('active');
+            if (currentMode === 'current') {
+                btnCurrent.classList.add('active');
+                btnCurrent.textContent = `目前統計 (${currentStatsData.dateRange.start}-${currentStatsData.dateRange.end})`;
+                btnLastWeek.textContent = '上週統計';
+            } else {
+                btnLastWeek.classList.add('active');
+                btnLastWeek.textContent = `上週統計 (${currentStatsData.dateRange.start}-${currentStatsData.dateRange.end})`;
+                btnCurrent.textContent = '目前統計';
+            }
+        }
+
         document.getElementById('btn-current').addEventListener('click', () => {
-            currentMode = 'current';
-            loadStats('stats.json');
+            loadStats('stats.json', 'current');
         });
         document.getElementById('btn-last-week').addEventListener('click', () => {
-            currentMode = 'lastWeek';
-            loadStats('last_week.json');
+            loadStats('last_week.json', 'lastWeek');
         });
 
         // 初始載入目前統計
-        loadStats('stats.json');
+        loadStats('stats.json', 'current');
 
-        // 匯出功能（使用 currentStatsData）
+        // 匯出功能
         document.getElementById('export-csv').addEventListener('click', () => {
             if (!currentStatsData) return;
             const rows = [['作者', '總篇數', '正常篇數', '刪除篇數', '文章ID']];
