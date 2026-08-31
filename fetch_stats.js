@@ -4,21 +4,11 @@ const fs = require('fs');
 const path = require('path');
 
 // ===== 可調參數 =====
-const FETCH_LATEST_PAGE = true;      // 抓取最新頁 index.html
-const START_PAGE = 3932;             // 主要統計起始頁
-const MAX_PAGES = 100;               // 最多向後翻頁數（主要統計）
-const DELAY_MS = 800;                // 請求延遲毫秒
-
-// 主要統計日期範圍（從 2026/8/29 到今天）
-const MAIN_START_DATE = '8/29';
-const MAIN_END_DATE = getTodayStr();
-
-// 上週統計日期範圍（自動計算上週一至週日）
-const lastWeek = getLastWeekRange();
-
-// 上週統計起始頁（比主要統計更早，以涵蓋上週文章）
-const LAST_WEEK_START_PAGE = 3850;
-const LAST_WEEK_MAX_PAGES = 200;
+const START_PAGE = 3932;          // 起始頁碼（index3932.html）
+const MAX_PAGES = 100;            // 最多向後翻頁數（安全上限，可涵蓋至 index4031）
+const EMPTY_PAGE_THRESHOLD = 5;   // 連續 N 頁無符合文章才停止
+const MAIN_START_DATE = '8/29';   // 統計起始日期（包含）
+const DELAY_MS = 800;             // 請求延遲毫秒
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
@@ -26,22 +16,6 @@ const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
 function getTodayStr() {
     const now = new Date();
     return `${now.getMonth() + 1}/${now.getDate()}`;
-}
-
-function getLastWeekRange() {
-    const today = new Date();
-    const day = today.getDay();
-    const diffToMonday = (day + 6) % 7;
-    const thisMonday = new Date(today);
-    thisMonday.setDate(today.getDate() - diffToMonday);
-    const lastSunday = new Date(thisMonday);
-    lastSunday.setDate(thisMonday.getDate() - 1);
-    const lastMonday = new Date(lastSunday);
-    lastMonday.setDate(lastSunday.getDate() - 6);
-    return {
-        start: `${lastMonday.getMonth() + 1}/${lastMonday.getDate()}`,
-        end: `${lastSunday.getMonth() + 1}/${lastSunday.getDate()}`
-    };
 }
 
 function fetchPage(url) {
@@ -71,7 +45,7 @@ function extractOriginalAuthor(titleHtml) {
     return null;
 }
 
-function parsePage(html, seenArticleIds, authorData, dateRange, pageLabel) {
+function parsePage(html, seenArticleIds, authorData, pageLabel) {
     let hasInRange = false;
     let articlesFound = 0;
 
@@ -93,7 +67,8 @@ function parsePage(html, seenArticleIds, authorData, dateRange, pageLabel) {
         const href = titleMatch[1];
         const titleHtml = titleMatch[2];
 
-        if (dateText < dateRange.start || dateText > dateRange.end) continue;
+        // 只統計日期 >= MAIN_START_DATE 的文章
+        if (dateText < MAIN_START_DATE) continue;
         hasInRange = true;
 
         const idMatch = href.match(/\/(M\.\d+\.A\.\w+)\.html$/);
@@ -135,102 +110,63 @@ function parsePage(html, seenArticleIds, authorData, dateRange, pageLabel) {
         }
     }
 
-    console.log(`[${pageLabel}] 解析到 ${articlesFound} 篇文章，其中範圍內：${hasInRange ? '是' : '否'}`);
+    console.log(`[${pageLabel}] 解析到 ${articlesFound} 篇文章，其中符合日期：${hasInRange ? '是' : '否'}`);
     return { hasInRange };
 }
 
-async function fetchRange(startPage, maxPages, dateRange, label) {
+async function main() {
     const seenArticleIds = new Set();
     const authorData = {};
     let scannedPages = 0;
+    let emptyCount = 0;
 
-    for (let page = startPage; page < startPage + maxPages; page++) {
-        const url = page === 1 ? BASE_URL + 'index.html' : BASE_URL + `index${page}.html`;
-        console.log(`[${label}] 抓取第 ${page} 頁（${url}）...`);
+    const dateRange = { start: MAIN_START_DATE, end: getTodayStr() };
+
+    for (let page = START_PAGE; page < START_PAGE + MAX_PAGES; page++) {
+        const url = BASE_URL + `index${page}.html`;
+        console.log(`抓取第 ${page} 頁（${url}）...`);
         try {
             const html = await fetchPage(url);
-            const { hasInRange } = parsePage(html, seenArticleIds, authorData, dateRange, `${label}第${page}頁`);
+            const { hasInRange } = parsePage(html, seenArticleIds, authorData, `第${page}頁`);
             scannedPages++;
-            if (!hasInRange) {
-                console.log(`[${label}] 第 ${page} 頁無範圍內文章，停止翻頁。`);
-                break;
+            if (hasInRange) {
+                emptyCount = 0;
+            } else {
+                emptyCount++;
+                if (emptyCount >= EMPTY_PAGE_THRESHOLD) {
+                    console.log(`連續 ${EMPTY_PAGE_THRESHOLD} 頁無符合文章，停止翻頁。`);
+                    break;
+                }
             }
             await sleep(DELAY_MS);
         } catch (err) {
-            console.error(`[${label}] 第 ${page} 頁抓取失敗:`, err);
+            console.error(`第 ${page} 頁抓取失敗:`, err);
             break;
         }
     }
-    return { authorData, scannedPages };
-}
 
-async function main() {
-    // 主要統計
-    console.log('=== 主要統計 ===');
-    const mainDateRange = { start: MAIN_START_DATE, end: MAIN_END_DATE };
-    const mainResult = await fetchRange(START_PAGE, MAX_PAGES, mainDateRange, '主要');
-    if (FETCH_LATEST_PAGE) {
-        console.log('抓取最新頁 index.html...');
-        try {
-            const html = await fetchPage(BASE_URL + 'index.html');
-            const seen = new Set(Object.keys(mainResult.authorData).flatMap(a => mainResult.authorData[a].articleIds));
-            parsePage(html, seen, mainResult.authorData, mainDateRange, '最新頁');
-            mainResult.scannedPages++;
-        } catch (err) {
-            console.error('最新頁抓取失敗:', err);
-        }
-        await sleep(DELAY_MS);
-    }
-
-    // 上週統計：先檢查是否已存在且日期正確
-    const lastWeekDateRange = { start: lastWeek.start, end: lastWeek.end };
-    const lastWeekFile = 'last_week.json';
-    let needFetchLastWeek = true;
-    if (fs.existsSync(lastWeekFile)) {
-        try {
-            const existing = JSON.parse(fs.readFileSync(lastWeekFile, 'utf8'));
-            if (existing.dateRange && existing.dateRange.start === lastWeekDateRange.start && existing.dateRange.end === lastWeekDateRange.end) {
-                needFetchLastWeek = false;
-                console.log('last_week.json 已存在且日期範圍正確，跳過抓取。');
-            }
-        } catch (err) {
-            console.warn('讀取 last_week.json 失敗，將重新抓取。', err);
-        }
-    }
-
-    if (needFetchLastWeek) {
-        console.log('=== 上週統計 ===');
-        const lastWeekResult = await fetchRange(LAST_WEEK_START_PAGE, LAST_WEEK_MAX_PAGES, lastWeekDateRange, '上週');
-        const lastWeekOutput = {
-            generatedAt: new Date().toISOString(),
-            mode: 'week',
-            dateRange: lastWeekDateRange,
-            scannedPages: lastWeekResult.scannedPages,
-            stats: lastWeekResult.authorData
-        };
-        fs.writeFileSync(lastWeekFile, JSON.stringify(lastWeekOutput, null, 2));
-        console.log('last_week.json 已更新。');
-    }
-
-    // 輸出主要統計
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}-${String(now.getSeconds()).padStart(2,'0')}`;
-    const mainOutput = {
+
+    const output = {
         generatedAt: now.toISOString(),
         mode: 'range',
-        dateRange: mainDateRange,
-        scannedPages: mainResult.scannedPages,
-        stats: mainResult.authorData
+        dateRange: dateRange,
+        scannedPages: scannedPages,
+        stats: authorData
     };
-    fs.writeFileSync('stats.json', JSON.stringify(mainOutput, null, 2));
 
+    // 寫入 stats.json
+    fs.writeFileSync('stats.json', JSON.stringify(output, null, 2));
+
+    // 寫入 export 歷史
     const exportDir = path.join(__dirname, 'export');
     fs.mkdirSync(exportDir, { recursive: true });
-    fs.writeFileSync(path.join(exportDir, `${timestamp}.json`), JSON.stringify(mainOutput, null, 2));
+    fs.writeFileSync(path.join(exportDir, `${timestamp}.json`), JSON.stringify(output, null, 2));
 
     console.log('stats.json 與 export 歷史已更新。');
-    console.log(`主要統計區間：${mainDateRange.start} ~ ${mainDateRange.end}`);
-    console.log(`上週統計檔案狀態：${needFetchLastWeek ? '已重新抓取' : '沿用現有'}`);
+    console.log(`統計區間：${dateRange.start} ~ ${dateRange.end}`);
+    console.log(`總作者數：${Object.keys(authorData).length}`);
 }
 
 function sleep(ms) {
