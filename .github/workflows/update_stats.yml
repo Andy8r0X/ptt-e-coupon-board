@@ -1,8 +1,7 @@
 name: Update PTT Stats
-
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 */12 * * *'
   workflow_dispatch:
 
 permissions:
@@ -21,10 +20,8 @@ jobs:
           node-version: '20'
 
       - name: Run fetch script
-        run: |
-             rm -f state.json stats.json
-             node fetch_stats.js
-             
+        run: node fetch_stats.js
+
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
