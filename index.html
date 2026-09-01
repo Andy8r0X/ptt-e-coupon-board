@@ -28,16 +28,36 @@
         .article-list span { display: block; }
         .deleted-badge { font-weight: bold; color: #c00; }
         .high-count { color: red; }
+        .announcement-content { font-size: 0.95em; line-height: 1.6; white-space: pre; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>PTT e-coupon 板作者發文統計</h1>
         <div id="info" class="info">載入中...</div>
+
+        <!-- 超過 1 篇的作者高亮框 -->
         <div id="highlight" class="highlight-box" style="display:none;">
             <h2>🔥 超過 1 篇的作者</h2>
             <div id="highlight-content"></div>
         </div>
+
+        <!-- 新增：公告計點名單 -->
+        <div class="highlight-box" style="border-color: #f44336;">
+            <h2>📢 公告計點名單</h2>
+            <div class="announcement-content">ahwaahwa *1
+amber8129 *4 (水桶14天)
+hanksml *1
+jasonwu1988 *1
+jasonwu1988 *1
+jinzong *1
+paul7913538 *1
+redmooon *1
+rosymagnet *1
+Wendyliny *1
+willie1987 *1</div>
+        </div>
+
         <div class="toolbar" id="toolbar" style="display:none;">
             <button id="export-csv">匯出 CSV</button>
             <button id="export-xls">匯出 XLS</button>
@@ -50,7 +70,21 @@
         </table>
     </div>
     <script>
+        // 永久排除的作者名單
+        const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
+
         let statsData = null;
+
+        // 過濾掉被排除的作者
+        function getFilteredStats(data) {
+            const filtered = {};
+            for (const [author, info] of Object.entries(data.stats)) {
+                if (!EXCLUDED_AUTHORS.includes(author)) {
+                    filtered[author] = info;
+                }
+            }
+            return filtered;
+        }
 
         fetch('stats.json')
             .then(res => {
@@ -73,11 +107,14 @@
             const highlightBox = document.getElementById('highlight');
             const highlightContent = document.getElementById('highlight-content');
 
+            // 套用過濾
+            const filteredStats = getFilteredStats(data);
+
             info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
             tbody.innerHTML = '';
             highlightContent.innerHTML = '';
 
-            const entries = Object.entries(data.stats).sort((a, b) => a[0].localeCompare(b[0]));
+            const entries = Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]));
             if (entries.length === 0) {
                 info.textContent += '（無資料）';
                 table.style.display = 'none';
@@ -99,6 +136,7 @@
                     row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
                     tbody.appendChild(row);
                 }
+                // 高亮超過 1 篇的作者（已過濾）
                 const highlightAuthors = entries.filter(([, infoObj]) => infoObj.count > 1);
                 if (highlightAuthors.length > 0) {
                     highlightBox.style.display = 'block';
@@ -115,20 +153,24 @@
             }
         }
 
+        // 匯出 CSV（過濾排除作者）
         document.getElementById('export-csv').addEventListener('click', () => {
             if (!statsData) return;
+            const filteredStats = getFilteredStats(statsData);
             const rows = [['作者', '總篇數', '正常篇數', '刪除篇數', '文章ID']];
-            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+            for (const [author, infoObj] of Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]))) {
                 rows.push([author, infoObj.count, infoObj.normalCount, infoObj.deletedCount, infoObj.articleIds.join(' ')]);
             }
             const csvContent = rows.map(row => row.join(',')).join('\n');
             downloadFile(csvContent, 'ecoupon_stats.csv', 'text/csv;charset=utf-8;');
         });
 
+        // 匯出 XLS（過濾排除作者）
         document.getElementById('export-xls').addEventListener('click', () => {
             if (!statsData) return;
+            const filteredStats = getFilteredStats(statsData);
             let html = '<table border="1"><tr><th>作者</th><th>總篇數</th><th>正常篇數</th><th>刪除篇數</th><th>文章ID</th></tr>';
-            for (const [author, infoObj] of Object.entries(statsData.stats).sort((a, b) => a[0].localeCompare(b[0]))) {
+            for (const [author, infoObj] of Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]))) {
                 html += `<tr><td>${author}</td><td>${infoObj.count}</td><td>${infoObj.normalCount}</td><td>${infoObj.deletedCount}</td><td>${infoObj.articleIds.join('<br>')}</td></tr>`;
             }
             html += '</table>';
