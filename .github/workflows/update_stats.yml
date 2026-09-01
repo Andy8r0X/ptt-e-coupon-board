@@ -22,7 +22,10 @@ jobs:
 
       - name: Run fetch script
         run: node fetch_stats.js
-
+        run: |
+             rm -f state.json stats.json
+             node fetch_stats.js
+             
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
