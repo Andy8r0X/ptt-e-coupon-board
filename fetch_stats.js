@@ -8,13 +8,24 @@ const INITIAL_START_PAGE = 3932;   // 當 state.json 不存在時的起始頁碼
 const MAX_PAGES_TO_FETCH = 50;     // 每次執行最多抓取頁數
 const EMPTY_PAGE_THRESHOLD = 3;    // 連續 N 頁無新文章即停止
 const DELAY_MS = 800;              // 請求間隔（毫秒）
-const START_DATE = '8/29';         // 統計起始日期（與前端相容）
+const START_DATE = '8/29';         // 統計起始日期（包含），格式 M/D
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
 const STATE_FILE = 'state.json';
 const STATS_FILE = 'stats.json';
 const EXPORT_DIR = 'export';
+
+// 將日期 M/D 轉為數字 MMDD 以便比較，例如 8/29 -> 829
+function dateToNum(dateStr) {
+    const parts = dateStr.trim().split('/');
+    if (parts.length !== 2) return 0;
+    const month = parseInt(parts[0], 10);
+    const day = parseInt(parts[1], 10);
+    return month * 100 + day; // 8月29日 -> 829
+}
+
+const START_DATE_NUM = dateToNum(START_DATE);
 
 /**
  * 取得今日日期字串 (MM/DD)
@@ -63,12 +74,23 @@ function extractOriginalAuthor(titleHtml) {
 
 /**
  * 解析單頁文章，回傳新文章列表（僅包含未見過的）
+ * 同時過濾日期小於 startDateNum 的文章
  */
-function parsePage(html, knownIds, authorStats, pageLabel) {
+function parsePage(html, knownIds, authorStats, pageLabel, startDateNum) {
     const newArticles = [];
     const parts = html.split('<div class="r-ent">');
     for (let i = 1; i < parts.length; i++) {
         const block = parts[i];
+
+        // 取得日期
+        const dateMatch = block.match(/<div class="date">(.*?)<\/div>/);
+        if (!dateMatch) continue;
+        const dateText = dateMatch[1].trim();
+        if (!dateText) continue;
+
+        // 日期過濾：只統計 >= START_DATE 的文章
+        const dateNum = dateToNum(dateText);
+        if (dateNum < startDateNum) continue;
 
         // 取得作者
         let authorText = '';
@@ -226,6 +248,7 @@ function sleep(ms) {
  */
 async function main() {
     console.log('=== PTT e-coupon 統計爬蟲 (增量版) ===');
+    console.log(`統計起始日期：${START_DATE} (包含)`);
 
     // 1. 載入狀態
     const state = loadState();
@@ -258,7 +281,7 @@ async function main() {
         console.log(`抓取第 ${page} 頁...`);
         try {
             const html = await fetchPage(url);
-            const newIds = parsePage(html, knownIds, authorStats, `第${page}頁`);
+            const newIds = parsePage(html, knownIds, authorStats, `第${page}頁`, START_DATE_NUM);
 
             if (newIds.length > 0) {
                 newArticleCount += newIds.length;
