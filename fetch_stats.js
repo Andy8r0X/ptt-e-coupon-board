@@ -4,9 +4,9 @@ const fs = require('fs');
 const path = require('path');
 
 // ===== 可調參數 =====
-const INITIAL_START_PAGE = 3932;   // 當 state.json 不存在時的起始頁碼（可根據需求調整）
+const INITIAL_START_PAGE = 3932;   // 當 state.json 不存在時的起始頁碼
 const MAX_PAGES_TO_FETCH = 50;     // 每次執行最多抓取頁數（避免一次抓太多）
-const EMPTY_PAGE_THRESHOLD = 3;    // 連續 N 頁無新文章即停止（僅在增量模式下有效）
+const EMPTY_PAGE_THRESHOLD = 3;    // 連續 N 頁無新文章即停止
 const DELAY_MS = 800;              // 請求間隔（毫秒）
 // ===================
 
@@ -16,38 +16,7 @@ const STATS_FILE = 'stats.json';
 const EXPORT_DIR = 'export';
 
 /**
- * 取得當前最新頁碼（透過 index.html 的 302 重定向）
- */
-function getLatestPage() {
-    return new Promise((resolve, reject) => {
-        const options = {
-            method: 'HEAD',
-            headers: {
-                'Cookie': 'over18=1',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-            }
-        };
-        const req = https.get(BASE_URL + 'index.html', options, (res) => {
-            // 檢查 Location 標頭
-            const location = res.headers.location;
-            if (!location) {
-                reject(new Error('無法取得最新頁面重定向'));
-                return;
-            }
-            const match = location.match(/index(\d+)\.html/);
-            if (!match) {
-                reject(new Error('無法解析最新頁碼'));
-                return;
-            }
-            resolve(parseInt(match[1], 10));
-        });
-        req.on('error', reject);
-        req.end();
-    });
-}
-
-/**
- * 抓取單一頁面 HTML
+ * 抓取單一頁面 HTML，若 404 則拋出錯誤
  */
 function fetchPage(url) {
     return new Promise((resolve, reject) => {
@@ -59,7 +28,7 @@ function fetchPage(url) {
         };
         https.get(url, options, (res) => {
             if (res.statusCode === 404) {
-                reject(new Error(`頁面不存在 (404): ${url}`));
+                reject(new Error(`404 Not Found: ${url}`));
                 return;
             }
             let data = '';
@@ -91,10 +60,6 @@ function parsePage(html, knownIds, authorStats, pageLabel) {
     const parts = html.split('<div class="r-ent">');
     for (let i = 1; i < parts.length; i++) {
         const block = parts[i];
-
-        // 取得日期（未使用，但保留）
-        const dateMatch = block.match(/<div class="date">(.*?)<\/div>/);
-        const dateText = dateMatch ? dateMatch[1].trim() : '';
 
         // 取得作者
         let authorText = '';
@@ -174,11 +139,9 @@ function loadState() {
             console.warn('讀取狀態檔失敗，將重新初始化', e);
         }
     }
-    // 預設狀態
     return {
-        lastScannedPage: null,   // 上次掃描到的最後一頁（已處理）
-        knownIds: new Set(),
-        authorStats: {}          // 可選擇也持久化，但我們會從 stats.json 合併？此處僅作示範
+        lastScannedPage: null,
+        knownIds: new Set()
     };
 }
 
@@ -202,7 +165,6 @@ function loadExistingStats() {
             const raw = fs.readFileSync(STATS_FILE, 'utf8');
             const data = JSON.parse(raw);
             if (data.stats) {
-                // 轉換為記憶體格式
                 const stats = {};
                 for (const [author, info] of Object.entries(data.stats)) {
                     stats[author] = {
@@ -222,7 +184,7 @@ function loadExistingStats() {
 }
 
 /**
- * 合併新的統計到現有統計（避免丟失舊數據）
+ * 合併新的統計到現有統計
  */
 function mergeStats(existing, newStats) {
     for (const [author, info] of Object.entries(newStats)) {
@@ -234,11 +196,9 @@ function mergeStats(existing, newStats) {
                 articleIds: []
             };
         }
-        // 合併計數
         existing[author].count += info.count;
         existing[author].normalCount += info.normalCount;
         existing[author].deletedCount += info.deletedCount;
-        // 合併文章ID（去重）
         const idSet = new Set(existing[author].articleIds);
         for (const id of info.articleIds) {
             idSet.add(id);
@@ -247,9 +207,6 @@ function mergeStats(existing, newStats) {
     }
 }
 
-/**
- * 延遲函數
- */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -265,21 +222,11 @@ async function main() {
     const knownIds = state.knownIds;
     let lastScannedPage = state.lastScannedPage;
 
-    // 2. 載入現有統計（若存在）
+    // 2. 載入現有統計
     const authorStats = loadExistingStats();
     console.log(`已載入 ${Object.keys(authorStats).length} 位作者的歷史統計`);
 
-    // 3. 取得最新頁碼
-    let latestPage;
-    try {
-        latestPage = await getLatestPage();
-        console.log(`當前最新頁碼：${latestPage}`);
-    } catch (err) {
-        console.error('無法取得最新頁碼:', err);
-        return;
-    }
-
-    // 4. 決定起始頁碼
+    // 3. 決定起始頁碼
     let startPage;
     if (lastScannedPage !== null && lastScannedPage !== undefined) {
         startPage = lastScannedPage + 1;
@@ -289,14 +236,8 @@ async function main() {
         console.log(`首次執行，使用初始頁碼：${startPage}`);
     }
 
-    // 若起始頁碼大於最新頁，表示無新文章
-    if (startPage > latestPage) {
-        console.log('已是最新，無需更新');
-        return;
-    }
-
-    // 限制最多抓取頁數
-    const endPage = Math.min(latestPage, startPage + MAX_PAGES_TO_FETCH - 1);
+    // 4. 設定最大抓取範圍（不依賴最新頁）
+    const endPage = startPage + MAX_PAGES_TO_FETCH - 1;
     console.log(`本次將抓取頁碼範圍：${startPage} ~ ${endPage}（共 ${endPage - startPage + 1} 頁）`);
 
     let newArticleCount = 0;
@@ -316,25 +257,29 @@ async function main() {
                 emptyPageCount++;
                 if (emptyPageCount >= EMPTY_PAGE_THRESHOLD) {
                     console.log(`連續 ${EMPTY_PAGE_THRESHOLD} 頁無新文章，停止抓取。`);
-                    // 將 lastScannedPage 更新為當前頁（已處理無新文章）
-                    lastScannedPage = page;
+                    lastScannedPage = page; // 記錄到這一頁，下次從下一頁開始
                     break;
                 }
             }
 
-            // 更新最後掃描頁碼（即便該頁無新文章也記錄，下次從下一頁開始）
+            // 更新最後掃描頁碼
             lastScannedPage = page;
 
-            // 每處理完一頁就保存狀態（避免意外中斷）
+            // 每處理完一頁保存狀態
             saveState({ lastScannedPage, knownIds });
             console.log(`狀態已保存，目前共 ${knownIds.size} 篇已知文章`);
 
-            // 延遲
             await sleep(DELAY_MS);
         } catch (err) {
-            console.error(`第 ${page} 頁抓取失敗:`, err.message);
-            // 若因 404 或其他錯誤，可能後續頁面也不存在，停止
-            break;
+            if (err.message.includes('404')) {
+                console.log(`第 ${page} 頁不存在 (404)，可能已達最新頁，停止抓取。`);
+                lastScannedPage = page - 1; // 上一頁是最後有效頁
+                saveState({ lastScannedPage, knownIds });
+                break;
+            } else {
+                console.error(`第 ${page} 頁抓取失敗:`, err.message);
+                break;
+            }
         }
     }
 
@@ -342,11 +287,9 @@ async function main() {
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}-${String(now.getSeconds()).padStart(2,'0')}`;
 
-    // 計算總作者數
     const totalAuthors = Object.keys(authorStats).length;
     console.log(`本次新增 ${newArticleCount} 篇文章，總作者數：${totalAuthors}`);
 
-    // 輸出 stats.json
     const output = {
         generatedAt: now.toISOString(),
         mode: 'incremental',
@@ -356,7 +299,6 @@ async function main() {
     };
     fs.writeFileSync(STATS_FILE, JSON.stringify(output, null, 2));
 
-    // 輸出 export 歷史
     if (!fs.existsSync(EXPORT_DIR)) {
         fs.mkdirSync(EXPORT_DIR, { recursive: true });
     }
@@ -366,5 +308,4 @@ async function main() {
     console.log(`最新掃描頁碼：${lastScannedPage}`);
 }
 
-// 執行
 main().catch(console.error);
