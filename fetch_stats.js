@@ -184,7 +184,7 @@ function loadExistingStats() {
 }
 
 /**
- * 合併新的統計到現有統計
+ * 合併新的統計到現有統計（已修復重複 ID 問題）
  */
 function mergeStats(existing, newStats) {
     for (const [author, info] of Object.entries(newStats)) {
@@ -196,13 +196,19 @@ function mergeStats(existing, newStats) {
                 articleIds: []
             };
         }
+        // 合併計數
         existing[author].count += info.count;
         existing[author].normalCount += info.normalCount;
         existing[author].deletedCount += info.deletedCount;
+        
+        // --- 修復重點：合併文章ID時進行去重 ---
+        // 1. 將現有 ID 放入 Set 以自動去重
         const idSet = new Set(existing[author].articleIds);
+        // 2. 加入新的 ID
         for (const id of info.articleIds) {
             idSet.add(id);
         }
+        // 3. 將 Set 轉回陣列
         existing[author].articleIds = Array.from(idSet);
     }
 }
