@@ -1,3 +1,4 @@
+// js/main.js - 安全版本（杜絕 XSS）
 // 永久排除的作者名單
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
@@ -14,6 +15,14 @@ function getFilteredStats(data) {
     return filtered;
 }
 
+// --- 安全渲染輔助函數 (建立文字節點，避免 XSS) ---
+function createTextElement(tag, text, className = '') {
+    const el = document.createElement(tag);
+    el.textContent = text;
+    if (className) el.className = className;
+    return el;
+}
+
 // 載入 stats.json
 fetch('stats.json')
     .then(res => {
@@ -28,7 +37,7 @@ fetch('stats.json')
         document.getElementById('info').textContent = '載入失敗：' + err.message;
     });
 
-// 載入 announcement.json
+// 載入 announcement.json（安全顯示）
 fetch('announcement.json')
     .then(res => {
         if (!res.ok) throw new Error(`無法載入公告 (${res.status})`);
@@ -36,11 +45,19 @@ fetch('announcement.json')
     })
     .then(data => {
         const container = document.getElementById('announcement-content');
+        container.innerHTML = ''; // 清空
         if (data.lines && data.lines.length > 0) {
-            container.innerHTML = data.lines.join('\n');
-            // 若有更新時間可顯示
+            data.lines.forEach(line => {
+                const p = document.createElement('div');
+                p.textContent = line;
+                container.appendChild(p);
+            });
             if (data.updatedAt) {
-                container.innerHTML += `\n（更新時間：${data.updatedAt}）`;
+                const timeNote = document.createElement('div');
+                timeNote.textContent = `（更新時間：${data.updatedAt}）`;
+                timeNote.style.color = '#666';
+                timeNote.style.fontSize = '0.9em';
+                container.appendChild(timeNote);
             }
         } else {
             container.textContent = '（目前無公告名單）';
@@ -71,39 +88,69 @@ function render(data) {
         table.style.display = 'none';
         toolbar.style.display = 'none';
         highlightBox.style.display = 'none';
-    } else {
-        table.style.display = 'table';
-        toolbar.style.display = 'block';
-        for (const [author, infoObj] of entries) {
-            const row = document.createElement('tr');
-            const idList = infoObj.articleIds.map(id => `<span>${id}</span>`).join('');
-            let countDisplay = `${infoObj.count}`;
-            if (infoObj.deletedCount > 0) {
-                countDisplay += ` <span class="deleted-badge">(刪除${infoObj.deletedCount})</span>`;
-            }
-            if (infoObj.count > 2) {
-                row.classList.add('high-count');
-            }
-            row.innerHTML = `<td>${author}</td><td>${countDisplay}</td><td class="article-list">${idList}</td>`;
-            tbody.appendChild(row);
-        }
-        const highlightAuthors = entries.filter(([, infoObj]) => infoObj.count > 1);
-        if (highlightAuthors.length > 0) {
-            highlightBox.style.display = 'block';
-            let html = '';
-            for (const [author, infoObj] of highlightAuthors) {
-                html += `<span style="font-weight:bold;">${author}</span>：${infoObj.count}篇`;
-                if (infoObj.deletedCount > 0) html += `（刪除${infoObj.deletedCount}）`;
-                html += '<br>';
-            }
-            highlightContent.innerHTML = html;
+        return;
+    }
+
+    table.style.display = 'table';
+    toolbar.style.display = 'block';
+
+    for (const [author, infoObj] of entries) {
+        const row = document.createElement('tr');
+        if (infoObj.count > 2) row.classList.add('high-count');
+
+        // 作者欄位
+        const tdAuthor = document.createElement('td');
+        tdAuthor.textContent = author;
+        row.appendChild(tdAuthor);
+
+        // 篇數欄位（含刪除標記）
+        const tdCount = document.createElement('td');
+        let countText = `${infoObj.count}`;
+        if (infoObj.deletedCount > 0) {
+            tdCount.appendChild(document.createTextNode(countText + ' '));
+            const badge = document.createElement('span');
+            badge.className = 'deleted-badge';
+            badge.textContent = `(刪除${infoObj.deletedCount})`;
+            tdCount.appendChild(badge);
         } else {
-            highlightBox.style.display = 'none';
+            tdCount.textContent = countText;
         }
+        row.appendChild(tdCount);
+
+        // 文章 ID 欄位（安全顯示）
+        const tdIds = document.createElement('td');
+        tdIds.className = 'article-list';
+        if (infoObj.articleIds && infoObj.articleIds.length > 0) {
+            infoObj.articleIds.forEach(id => {
+                const span = document.createElement('span');
+                span.textContent = id;
+                tdIds.appendChild(span);
+            });
+        }
+        row.appendChild(tdIds);
+        tbody.appendChild(row);
+    }
+
+    // 高亮超過 1 篇的作者
+    const highlightAuthors = entries.filter(([, infoObj]) => infoObj.count > 1);
+    if (highlightAuthors.length > 0) {
+        highlightBox.style.display = 'block';
+        const ul = document.createElement('div');
+        highlightAuthors.forEach(([author, infoObj]) => {
+            const item = document.createElement('div');
+            let text = `${author}：${infoObj.count}篇`;
+            if (infoObj.deletedCount > 0) text += `（刪除${infoObj.deletedCount}）`;
+            item.textContent = text;
+            item.style.fontWeight = 'bold';
+            ul.appendChild(item);
+        });
+        highlightContent.appendChild(ul);
+    } else {
+        highlightBox.style.display = 'none';
     }
 }
 
-// 匯出 CSV
+// --- 匯出功能（維持不變）---
 document.getElementById('export-csv').addEventListener('click', () => {
     if (!statsData) return;
     const filteredStats = getFilteredStats(statsData);
@@ -115,7 +162,6 @@ document.getElementById('export-csv').addEventListener('click', () => {
     downloadFile(csvContent, 'ecoupon_stats.csv', 'text/csv;charset=utf-8;');
 });
 
-// 匯出 XLS
 document.getElementById('export-xls').addEventListener('click', () => {
     if (!statsData) return;
     const filteredStats = getFilteredStats(statsData);
