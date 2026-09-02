@@ -19,6 +19,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: 修復重複 ID（一次性）
+        run: node fix_stats.js
+
       - name: Run fetch script
         run: node fetch_stats.js
 
