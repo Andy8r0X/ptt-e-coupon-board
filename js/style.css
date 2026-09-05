@@ -1,0 +1,338 @@
+/* js/style.css - PTT e-coupon 統計頁面樣式 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.container {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* 標題區 */
+.header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+.header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #1a2634;
+    background: linear-gradient(135deg, #1a2634 0%, #2c3e50 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.header p {
+    color: #6b7a8a;
+    font-size: 0.95rem;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
+/* 卡片通用 */
+.card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 20, 30, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: box-shadow 0.2s ease;
+}
+.card:hover {
+    box-shadow: 0 8px 30px rgba(0, 20, 30, 0.08);
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a2634;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    letter-spacing: -0.2px;
+}
+.card-title .icon {
+    font-size: 1.2rem;
+}
+
+/* 公告卡片 */
+.card-announcement {
+    border-left: 4px solid #e74c3c;
+    background: rgba(255, 245, 245, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.card-announcement .card-title { color: #c0392b; }
+
+/* 折疊開關 */
+.toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #e74c3c;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: rgba(231, 76, 60, 0.1);
+    transition: background 0.2s;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.toggle-btn:hover {
+    background: rgba(231, 76, 60, 0.2);
+}
+.toggle-btn .arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+.toggle-btn .arrow.open {
+    transform: rotate(180deg);
+}
+
+.announcement-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #2c3e50;
+    font-weight: 450;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    max-height: 0;
+    opacity: 0;
+}
+.announcement-content.open {
+    max-height: 2000px;
+    opacity: 1;
+}
+.announcement-content .line {
+    padding: 2px 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.04);
+}
+.announcement-content .line:last-child { border-bottom: none; }
+.announcement-meta {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #8a9aa8;
+}
+
+/* 人數標籤 */
+.count-badge-ann {
+    display: inline-block;
+    background: rgba(231, 76, 60, 0.12);
+    color: #c0392b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0 10px;
+    border-radius: 100px;
+    line-height: 20px;
+    margin-left: 4px;
+}
+
+/* 高亮卡片 */
+.card-highlight {
+    border-left: 4px solid #f39c12;
+    background: rgba(255, 248, 235, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.card-highlight .card-title { color: #d68910; }
+.highlight-item {
+    display: inline-block;
+    background: rgba(255,255,255,0.6);
+    padding: 4px 14px 4px 12px;
+    border-radius: 100px;
+    margin: 3px 6px 3px 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2c3e50;
+    border: 1px solid rgba(243, 156, 18, 0.15);
+}
+.highlight-item .count {
+    font-weight: 600;
+    color: #d68910;
+}
+.highlight-item .del {
+    font-size: 0.7rem;
+    color: #e74c3c;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+/* 工具列 */
+.toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 4px 0 16px 0;
+}
+.btn {
+    font-family: 'Inter', sans-serif;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    color: #1a2634;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,20,30,0.08);
+    background: #ffffff;
+}
+.btn-primary {
+    background: #1a2634;
+    color: #ffffff;
+    border: none;
+}
+.btn-primary:hover {
+    background: #2c3e50;
+    box-shadow: 0 8px 20px rgba(26, 38, 52, 0.2);
+}
+.btn-secondary {
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.btn-secondary:hover {
+    background: #ffffff;
+}
+
+/* 表格 */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 2px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    overflow: hidden;
+}
+thead {
+    background: rgba(26, 38, 52, 0.04);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+th {
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid rgba(0,0,0,0.04);
+}
+td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    vertical-align: top;
+    color: #1a2634;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.5); }
+
+.author-name {
+    font-weight: 600;
+    color: #1a2634;
+}
+.count-badge {
+    display: inline-block;
+    background: rgba(26, 38, 52, 0.06);
+    padding: 0 12px;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    line-height: 26px;
+    color: #1a2634;
+}
+.count-badge.high {
+    background: rgba(231, 76, 60, 0.08);
+    color: #c0392b;
+}
+.deleted-badge {
+    font-size: 0.7rem;
+    color: #e74c3c;
+    font-weight: 500;
+    background: rgba(231, 76, 60, 0.08);
+    padding: 0 8px;
+    border-radius: 100px;
+    margin-left: 4px;
+}
+.article-list {
+    font-size: 0.75rem;
+    color: #6b7a8a;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    line-height: 1.6;
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.article-list span {
+    display: inline-block;
+    background: rgba(0,0,0,0.02);
+    padding: 0 8px;
+    border-radius: 4px;
+    margin: 1px 2px 1px 0;
+    font-size: 0.7rem;
+    color: #4a5a6a;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 32px 0;
+    color: #8a9aa8;
+}
+
+.info-bar {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 100px;
+    padding: 8px 18px;
+    display: inline-block;
+    font-size: 0.85rem;
+    color: #4a5a6a;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    margin-bottom: 6px;
+}
+
+@media (max-width: 600px) {
+    body { padding: 16px 12px; }
+    .card { padding: 16px; }
+    .header h1 { font-size: 1.6rem; }
+    .btn { padding: 8px 18px; font-size: 0.8rem; }
+    td, th { padding: 10px 12px; font-size: 0.8rem; }
+    .toolbar { gap: 8px; }
+    .highlight-item { font-size: 0.8rem; padding: 3px 10px; }
+    .toggle-btn { font-size: 0.75rem; padding: 2px 10px; }
+}
+
+.article-list::-webkit-scrollbar { width: 4px; }
+.article-list::-webkit-scrollbar-track { background: transparent; }
+.article-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
