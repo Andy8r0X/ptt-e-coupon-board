@@ -1,4 +1,4 @@
-// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能（表格版）
+// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能（三欄表格版）
 // 永久排除的作者名單
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
@@ -55,7 +55,7 @@ fetch('stats.json')
         document.getElementById('info').textContent = '載入失敗：' + err.message;
     });
 
-// ----- 載入公告名單（表格顯示 + 折疊功能）-----
+// ----- 載入公告名單（三欄表格 + 折疊功能）-----
 fetch('announcement.json')
     .then(res => {
         if (!res.ok) throw new Error(`無法載入公告 (${res.status})`);
@@ -76,23 +76,26 @@ fetch('announcement.json')
             table.style.borderCollapse = 'collapse';
             table.style.fontSize = '0.9rem';
 
-            // 表頭
+            // 表頭（三欄）
             const thead = document.createElement('thead');
             thead.innerHTML = `
                 <tr>
                     <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e74c3c;font-weight:600;font-size:0.8rem;color:#c0392b;">使用者</th>
                     <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e74c3c;font-weight:600;font-size:0.8rem;color:#c0392b;">公告日期</th>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e74c3c;font-weight:600;font-size:0.8rem;color:#c0392b;">備註</th>
                 </tr>
             `;
             table.appendChild(thead);
 
-            // 表格內容
+            // 表格內容（三欄）
             const tbody = document.createElement('tbody');
             data.entries.forEach(entry => {
                 const tr = document.createElement('tr');
+                const note = entry.note || ''; // 若無備註則顯示空白
                 tr.innerHTML = `
                     <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${entry.name}</td>
                     <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${entry.date}</td>
+                    <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${note}</td>
                 `;
                 tbody.appendChild(tr);
             });
