@@ -1,4 +1,4 @@
-// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測（以自然日計算）
+// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能
 // 永久排除的作者名單
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
@@ -10,12 +10,10 @@ function getTimestampFromId(articleId) {
     return match ? parseInt(match[1], 10) : 0;
 }
 
-// ----- 計算某作者在最近 N 個自然日內的文章數量（含今天）-----
+// ----- 計算某作者在最近 N 個自然日內的文章數量 -----
 function countRecentDays(articleIds, days = 7) {
     const now = new Date();
-    // 今天的日期（不含時間）
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // 計算起始日期（往前推 days-1 天，確保總共 days 天）
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - (days - 1));
 
@@ -24,9 +22,7 @@ function countRecentDays(articleIds, days = 7) {
         const ts = getTimestampFromId(id);
         if (ts === 0) continue;
         const articleDate = new Date(ts * 1000);
-        // 只取年月日，忽略時分秒
         const articleDay = new Date(articleDate.getFullYear(), articleDate.getMonth(), articleDate.getDate());
-        // 判斷是否落在 [startDate, today] 區間內
         if (articleDay >= startDate && articleDay <= today) {
             count++;
         }
@@ -59,7 +55,7 @@ fetch('stats.json')
         document.getElementById('info').textContent = '載入失敗：' + err.message;
     });
 
-// ----- 載入公告名單 -----
+// ----- 載入公告名單（含折疊功能）-----
 fetch('announcement.json')
     .then(res => {
         if (!res.ok) throw new Error(`無法載入公告 (${res.status})`);
@@ -67,27 +63,64 @@ fetch('announcement.json')
     })
     .then(data => {
         const container = document.getElementById('announcement-content');
+        const countBadge = document.getElementById('announcement-count');
         container.innerHTML = '';
+
         if (data.lines && data.lines.length > 0) {
+            // 顯示人數
+            countBadge.textContent = `${data.lines.length} 人`;
+
+            // 填入名單
             data.lines.forEach(line => {
                 const p = document.createElement('div');
                 p.textContent = line;
+                p.className = 'line';
                 container.appendChild(p);
             });
+
             if (data.updatedAt) {
                 const meta = document.createElement('div');
                 meta.textContent = `（更新時間：${data.updatedAt}）`;
-                meta.style.color = '#666';
-                meta.style.fontSize = '0.9em';
+                meta.className = 'announcement-meta';
                 container.appendChild(meta);
+            }
+
+            // 預設展開狀態：從 localStorage 讀取偏好
+            const isOpen = localStorage.getItem('announcementOpen') === 'true';
+            if (isOpen) {
+                container.classList.add('open');
+                document.getElementById('toggle-arrow').classList.add('open');
+                document.getElementById('toggle-label').textContent = '收合';
+                document.getElementById('toggle-announcement').setAttribute('aria-expanded', 'true');
             }
         } else {
             container.textContent = '（目前無公告名單）';
+            countBadge.textContent = '0 人';
         }
     })
     .catch(() => {
         document.getElementById('announcement-content').textContent = '（公告名單尚未建立）';
+        document.getElementById('announcement-count').textContent = '0 人';
     });
+
+// ----- 折疊開關事件（需等 DOM 載入完成）-----
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-announcement');
+    const content = document.getElementById('announcement-content');
+    const arrow = document.getElementById('toggle-arrow');
+    const label = document.getElementById('toggle-label');
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            const isOpen = content.classList.toggle('open');
+            arrow.classList.toggle('open', isOpen);
+            label.textContent = isOpen ? '收合' : '展開';
+            this.setAttribute('aria-expanded', isOpen);
+            // 儲存偏好
+            localStorage.setItem('announcementOpen', isOpen);
+        });
+    }
+});
 
 // ----- 主渲染函數 -----
 function render(data) {
@@ -117,7 +150,6 @@ function render(data) {
     table.style.display = 'table';
     toolbar.style.display = 'block';
 
-    // 填入表格
     for (const [author, infoObj] of entries) {
         const row = document.createElement('tr');
         if (infoObj.count > 2) row.classList.add('high-count');
@@ -152,7 +184,7 @@ function render(data) {
         tbody.appendChild(row);
     }
 
-    // ----- 高亮「最近 7 個自然日內超過 1 篇」的作者 -----
+    // 高亮「最近 7 個自然日內超過 1 篇」的作者
     const highlightAuthors = entries.filter(([, infoObj]) => {
         return countRecentDays(infoObj.articleIds, 7) > 1;
     });
@@ -163,7 +195,7 @@ function render(data) {
         highlightAuthors.forEach(([author, infoObj]) => {
             const recent = countRecentDays(infoObj.articleIds, 7);
             const item = document.createElement('div');
-            let text = `${author}：最近 7 天內 ${recent} 篇（總 ${infoObj.count} 篇）`;
+            let text = `${author}：7天內 ${recent} 篇（總 ${infoObj.count} 篇）`;
             if (infoObj.deletedCount > 0) text += `，刪除 ${infoObj.deletedCount} 篇`;
             item.textContent = text;
             item.style.fontWeight = 'bold';
