@@ -19,11 +19,13 @@ jobs:
         with:
           node-version: '20'
 
+      # ⚠️ 此步驟僅用於本次重置，執行完畢後請移除或註解掉
+      - name: 重置狀態（一次性）
+        run: rm -f state.json   # 僅刪除狀態檔，保留 stats.json（或也可刪除 stats.json，視需求而定）
+
       - name: Run fetch script
-        run: |
-             rm -f state.json stats.json
-             node fetch_stats.js
-             
+        run: node fetch_stats.js
+
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
