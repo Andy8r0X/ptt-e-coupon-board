@@ -21,7 +21,7 @@ jobs:
 
       # ⚠️ 此步驟僅用於本次重置，執行完畢後請移除或註解掉
       - name: 重置狀態（一次性）
-        run: rm -f state.json   # 僅刪除狀態檔，保留 stats.json（或也可刪除 stats.json，視需求而定）
+        run: rm -f state.json stats.json
 
       - name: Run fetch script
         run: node fetch_stats.js
