@@ -1,10 +1,27 @@
-// js/main.js - 安全版本（杜絕 XSS）
 // 永久排除的作者名單
+// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
 let statsData = null;
 
-// 過濾掉被排除的作者
+// ----- 輔助函數：從文章 ID 解析時間戳（秒）-----
+function getTimestampFromId(articleId) {
+    const match = articleId.match(/M\.(\d+)\./);
+    return match ? parseInt(match[1], 10) : 0;
+}
+
+// ----- 計算某作者在最近 N 天內的文章數量 -----
+function countRecentDays(articleIds, days = 7) {
+    const now = Math.floor(Date.now() / 1000);
+    const cutoff = now - days * 24 * 60 * 60;
+    let count = 0;
+    for (const id of articleIds) {
+        if (getTimestampFromId(id) >= cutoff) count++;
+    }
+    return count;
+}
+
+// ----- 過濾掉排除名單 -----
 function getFilteredStats(data) {
     const filtered = {};
     for (const [author, info] of Object.entries(data.stats)) {
@@ -15,15 +32,7 @@ function getFilteredStats(data) {
     return filtered;
 }
 
-// --- 安全渲染輔助函數 (建立文字節點，避免 XSS) ---
-function createTextElement(tag, text, className = '') {
-    const el = document.createElement(tag);
-    el.textContent = text;
-    if (className) el.className = className;
-    return el;
-}
-
-// 載入 stats.json
+// ----- 載入 stats.json -----
 fetch('stats.json')
     .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -37,7 +46,7 @@ fetch('stats.json')
         document.getElementById('info').textContent = '載入失敗：' + err.message;
     });
 
-// 載入 announcement.json（安全顯示）
+// ----- 載入公告名單 -----
 fetch('announcement.json')
     .then(res => {
         if (!res.ok) throw new Error(`無法載入公告 (${res.status})`);
@@ -45,7 +54,7 @@ fetch('announcement.json')
     })
     .then(data => {
         const container = document.getElementById('announcement-content');
-        container.innerHTML = ''; // 清空
+        container.innerHTML = '';
         if (data.lines && data.lines.length > 0) {
             data.lines.forEach(line => {
                 const p = document.createElement('div');
@@ -53,21 +62,21 @@ fetch('announcement.json')
                 container.appendChild(p);
             });
             if (data.updatedAt) {
-                const timeNote = document.createElement('div');
-                timeNote.textContent = `（更新時間：${data.updatedAt}）`;
-                timeNote.style.color = '#666';
-                timeNote.style.fontSize = '0.9em';
-                container.appendChild(timeNote);
+                const meta = document.createElement('div');
+                meta.textContent = `（更新時間：${data.updatedAt}）`;
+                meta.style.color = '#666';
+                meta.style.fontSize = '0.9em';
+                container.appendChild(meta);
             }
         } else {
             container.textContent = '（目前無公告名單）';
         }
     })
-    .catch(err => {
+    .catch(() => {
         document.getElementById('announcement-content').textContent = '（公告名單尚未建立）';
-        console.warn('公告載入失敗:', err.message);
     });
 
+// ----- 主渲染函數 -----
 function render(data) {
     const info = document.getElementById('info');
     const table = document.getElementById('stats-table');
@@ -77,12 +86,14 @@ function render(data) {
     const highlightContent = document.getElementById('highlight-content');
 
     const filteredStats = getFilteredStats(data);
+    const entries = Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]));
 
+    // 更新資訊列
     info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
+
     tbody.innerHTML = '';
     highlightContent.innerHTML = '';
 
-    const entries = Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]));
     if (entries.length === 0) {
         info.textContent += '（無資料）';
         table.style.display = 'none';
@@ -94,16 +105,17 @@ function render(data) {
     table.style.display = 'table';
     toolbar.style.display = 'block';
 
+    // 填入表格
     for (const [author, infoObj] of entries) {
         const row = document.createElement('tr');
         if (infoObj.count > 2) row.classList.add('high-count');
 
-        // 作者欄位
+        // 作者
         const tdAuthor = document.createElement('td');
         tdAuthor.textContent = author;
         row.appendChild(tdAuthor);
 
-        // 篇數欄位（含刪除標記）
+        // 篇數
         const tdCount = document.createElement('td');
         let countText = `${infoObj.count}`;
         if (infoObj.deletedCount > 0) {
@@ -117,7 +129,7 @@ function render(data) {
         }
         row.appendChild(tdCount);
 
-        // 文章 ID 欄位（安全顯示）
+        // 文章 ID 列表
         const tdIds = document.createElement('td');
         tdIds.className = 'article-list';
         if (infoObj.articleIds && infoObj.articleIds.length > 0) {
@@ -131,26 +143,31 @@ function render(data) {
         tbody.appendChild(row);
     }
 
-    // 高亮超過 1 篇的作者
-    const highlightAuthors = entries.filter(([, infoObj]) => infoObj.count > 1);
+    // ----- 高亮「7天內超過1篇」的作者（新邏輯）-----
+    const highlightAuthors = entries.filter(([, infoObj]) => {
+        return countRecentDays(infoObj.articleIds, 7) > 1;
+    });
+
     if (highlightAuthors.length > 0) {
         highlightBox.style.display = 'block';
-        const ul = document.createElement('div');
+        const container = document.createElement('div');
         highlightAuthors.forEach(([author, infoObj]) => {
             const item = document.createElement('div');
-            let text = `${author}：${infoObj.count}篇`;
-            if (infoObj.deletedCount > 0) text += `（刪除${infoObj.deletedCount}）`;
+            const recent = countRecentDays(infoObj.articleIds, 7);
+            let text = `${author}：7天內 ${recent} 篇（總 ${infoObj.count} 篇）`;
+            if (infoObj.deletedCount > 0) text += `，刪除 ${infoObj.deletedCount} 篇`;
             item.textContent = text;
             item.style.fontWeight = 'bold';
-            ul.appendChild(item);
+            item.style.marginBottom = '4px';
+            container.appendChild(item);
         });
-        highlightContent.appendChild(ul);
+        highlightContent.appendChild(container);
     } else {
         highlightBox.style.display = 'none';
     }
 }
 
-// --- 匯出功能（維持不變）---
+// ----- 匯出 CSV -----
 document.getElementById('export-csv').addEventListener('click', () => {
     if (!statsData) return;
     const filteredStats = getFilteredStats(statsData);
@@ -162,6 +179,7 @@ document.getElementById('export-csv').addEventListener('click', () => {
     downloadFile(csvContent, 'ecoupon_stats.csv', 'text/csv;charset=utf-8;');
 });
 
+// ----- 匯出 XLS -----
 document.getElementById('export-xls').addEventListener('click', () => {
     if (!statsData) return;
     const filteredStats = getFilteredStats(statsData);
@@ -174,6 +192,7 @@ document.getElementById('export-xls').addEventListener('click', () => {
     downloadBlob(blob, 'ecoupon_stats.xls');
 });
 
+// ----- 通用下載函數 -----
 function downloadFile(content, filename, mime) {
     const blob = new Blob([content], { type: mime });
     downloadBlob(blob, filename);
