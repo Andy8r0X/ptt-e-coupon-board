@@ -19,12 +19,8 @@ jobs:
         with:
           node-version: '20'
 
-      # ⚠️ 此步驟僅用於本次重置，執行完畢後請移除或註解掉
-      - name: 重置狀態（一次性）
-        run: rm -f state.json stats.json
-
       - name: Run fetch script
-        run: node fetch_stats.js
+        run: node fetch_stats.js   # 只保留這一行
 
       - name: Commit and push if changed
         run: |
