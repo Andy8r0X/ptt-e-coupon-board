@@ -1,4 +1,4 @@
-// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能
+// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能（表格版）
 // 永久排除的作者名單
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
@@ -55,7 +55,7 @@ fetch('stats.json')
         document.getElementById('info').textContent = '載入失敗：' + err.message;
     });
 
-// ----- 載入公告名單（含折疊功能）-----
+// ----- 載入公告名單（表格顯示 + 折疊功能）-----
 fetch('announcement.json')
     .then(res => {
         if (!res.ok) throw new Error(`無法載入公告 (${res.status})`);
@@ -66,18 +66,40 @@ fetch('announcement.json')
         const countBadge = document.getElementById('announcement-count');
         container.innerHTML = '';
 
-        if (data.lines && data.lines.length > 0) {
-            // 顯示人數
-            countBadge.textContent = `${data.lines.length} 人`;
+        // 檢查是否有 entries 陣列（新格式）
+        if (data.entries && data.entries.length > 0) {
+            countBadge.textContent = `${data.entries.length} 人`;
 
-            // 填入名單
-            data.lines.forEach(line => {
-                const p = document.createElement('div');
-                p.textContent = line;
-                p.className = 'line';
-                container.appendChild(p);
+            // 建立表格
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.fontSize = '0.9rem';
+
+            // 表頭
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e74c3c;font-weight:600;font-size:0.8rem;color:#c0392b;">使用者</th>
+                    <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #e74c3c;font-weight:600;font-size:0.8rem;color:#c0392b;">公告日期</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            // 表格內容
+            const tbody = document.createElement('tbody');
+            data.entries.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${entry.name}</td>
+                    <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${entry.date}</td>
+                `;
+                tbody.appendChild(tr);
             });
+            table.appendChild(tbody);
+            container.appendChild(table);
 
+            // 更新時間
             if (data.updatedAt) {
                 const meta = document.createElement('div');
                 meta.textContent = `（更新時間：${data.updatedAt}）`;
@@ -85,7 +107,30 @@ fetch('announcement.json')
                 container.appendChild(meta);
             }
 
-            // 預設展開狀態：從 localStorage 讀取偏好
+            // 恢復展開狀態
+            const isOpen = localStorage.getItem('announcementOpen') === 'true';
+            if (isOpen) {
+                container.classList.add('open');
+                document.getElementById('toggle-arrow').classList.add('open');
+                document.getElementById('toggle-label').textContent = '收合';
+                document.getElementById('toggle-announcement').setAttribute('aria-expanded', 'true');
+            }
+        } 
+        // 向後相容：如果仍使用舊的 lines 格式，轉為純文字顯示
+        else if (data.lines && data.lines.length > 0) {
+            countBadge.textContent = `${data.lines.length} 人`;
+            data.lines.forEach(line => {
+                const p = document.createElement('div');
+                p.textContent = line;
+                p.className = 'line';
+                container.appendChild(p);
+            });
+            if (data.updatedAt) {
+                const meta = document.createElement('div');
+                meta.textContent = `（更新時間：${data.updatedAt}）`;
+                meta.className = 'announcement-meta';
+                container.appendChild(meta);
+            }
             const isOpen = localStorage.getItem('announcementOpen') === 'true';
             if (isOpen) {
                 container.classList.add('open');
@@ -116,7 +161,6 @@ document.addEventListener('DOMContentLoaded', function() {
             arrow.classList.toggle('open', isOpen);
             label.textContent = isOpen ? '收合' : '展開';
             this.setAttribute('aria-expanded', isOpen);
-            // 儲存偏好
             localStorage.setItem('announcementOpen', isOpen);
         });
     }
