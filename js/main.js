@@ -1,5 +1,5 @@
+// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測（以自然日計算）
 // 永久排除的作者名單
-// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
 let statsData = null;
@@ -10,13 +10,26 @@ function getTimestampFromId(articleId) {
     return match ? parseInt(match[1], 10) : 0;
 }
 
-// ----- 計算某作者在最近 N 天內的文章數量 -----
+// ----- 計算某作者在最近 N 個自然日內的文章數量（含今天）-----
 function countRecentDays(articleIds, days = 7) {
-    const now = Math.floor(Date.now() / 1000);
-    const cutoff = now - days * 24 * 60 * 60;
+    const now = new Date();
+    // 今天的日期（不含時間）
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // 計算起始日期（往前推 days-1 天，確保總共 days 天）
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - (days - 1));
+
     let count = 0;
     for (const id of articleIds) {
-        if (getTimestampFromId(id) >= cutoff) count++;
+        const ts = getTimestampFromId(id);
+        if (ts === 0) continue;
+        const articleDate = new Date(ts * 1000);
+        // 只取年月日，忽略時分秒
+        const articleDay = new Date(articleDate.getFullYear(), articleDate.getMonth(), articleDate.getDate());
+        // 判斷是否落在 [startDate, today] 區間內
+        if (articleDay >= startDate && articleDay <= today) {
+            count++;
+        }
     }
     return count;
 }
@@ -88,7 +101,6 @@ function render(data) {
     const filteredStats = getFilteredStats(data);
     const entries = Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]));
 
-    // 更新資訊列
     info.textContent = `統計區間：${data.dateRange.start} ~ ${data.dateRange.end} | 掃描頁數：${data.scannedPages} | 更新時間：${new Date(data.generatedAt).toLocaleString()}`;
 
     tbody.innerHTML = '';
@@ -110,12 +122,10 @@ function render(data) {
         const row = document.createElement('tr');
         if (infoObj.count > 2) row.classList.add('high-count');
 
-        // 作者
         const tdAuthor = document.createElement('td');
         tdAuthor.textContent = author;
         row.appendChild(tdAuthor);
 
-        // 篇數
         const tdCount = document.createElement('td');
         let countText = `${infoObj.count}`;
         if (infoObj.deletedCount > 0) {
@@ -129,7 +139,6 @@ function render(data) {
         }
         row.appendChild(tdCount);
 
-        // 文章 ID 列表
         const tdIds = document.createElement('td');
         tdIds.className = 'article-list';
         if (infoObj.articleIds && infoObj.articleIds.length > 0) {
@@ -143,7 +152,7 @@ function render(data) {
         tbody.appendChild(row);
     }
 
-    // ----- 高亮「7天內超過1篇」的作者（新邏輯）-----
+    // ----- 高亮「最近 7 個自然日內超過 1 篇」的作者 -----
     const highlightAuthors = entries.filter(([, infoObj]) => {
         return countRecentDays(infoObj.articleIds, 7) > 1;
     });
@@ -152,9 +161,9 @@ function render(data) {
         highlightBox.style.display = 'block';
         const container = document.createElement('div');
         highlightAuthors.forEach(([author, infoObj]) => {
-            const item = document.createElement('div');
             const recent = countRecentDays(infoObj.articleIds, 7);
-            let text = `${author}：7天內 ${recent} 篇（總 ${infoObj.count} 篇）`;
+            const item = document.createElement('div');
+            let text = `${author}：最近 7 天內 ${recent} 篇（總 ${infoObj.count} 篇）`;
             if (infoObj.deletedCount > 0) text += `，刪除 ${infoObj.deletedCount} 篇`;
             item.textContent = text;
             item.style.fontWeight = 'bold';
