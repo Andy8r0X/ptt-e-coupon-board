@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // ===== 可調參數 =====
-const INITIAL_START_PAGE = 3932;
+const INITIAL_START_PAGE = 3892;
 const MAX_PAGES_TO_FETCH = 50;
 const EMPTY_PAGE_THRESHOLD = 3;
 const DELAY_MS = 800;
