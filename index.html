@@ -4,54 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PTT e-coupon 作者統計</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        h1 { text-align: center; }
-        .highlight-box {
-            background: #f9f9f9; border: 2px solid #4CAF50; padding: 10px;
-            margin: 10px 0; border-radius: 5px;
-        }
-        .highlight-box h2 { margin: 0 0 5px 0; font-size: 1.1em; color: #333; }
-        .toolbar { text-align: center; margin: 10px 0; }
-        .toolbar button {
-            margin: 0 5px; padding: 12px 24px; cursor: pointer;
-            background: #4CAF50; color: white; border: none; border-radius: 6px;
-            font-size: 16px; font-weight: bold;
-        }
-        .toolbar button:hover { background: #45a049; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
-        th { background-color: #f2f2f2; }
-        .info { color: #666; font-size: 0.9em; text-align: center; }
-        .article-list { font-size: 0.8em; color: #555; margin-top: 5px; padding-left: 15px; }
-        .article-list span { display: block; }
-        .deleted-badge { font-weight: bold; color: #c00; }
-        .high-count { color: red; }
-        .announcement-content { font-size: 0.95em; line-height: 1.6; white-space: pre-wrap; }
-    </style>
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- 外部 CSS -->
+    <link rel="stylesheet" href="js/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>PTT e-coupon 板作者發文統計</h1>
-        <div id="info" class="info">載入中...</div>
+<div class="container">
 
-        <!-- 超過 1 篇的作者高亮框 -->
-        <div id="highlight" class="highlight-box" style="display:none;">
-            <h2>🔥 超過 1 篇的作者（僅供當日參考 未包含已刪文）</h2>
-            <div id="highlight-content"></div>
-        </div>
+    <div class="header">
+        <h1>📊 PTT e-coupon 作者統計</h1>
+        <p id="info" class="info-bar">載入中…</p>
+    </div>
 
-        <!-- 公告計點名單（動態載入） -->
-        <div class="highlight-box" style="border-color: #f44336;">
-            <h2>📢 公告計點名單（手動更新）</h2>
-            <div id="announcement-content" class="announcement-content">載入中...</div>
+    <!-- 公告卡片（可折疊） -->
+    <div class="card card-announcement" id="announcement-card">
+        <div class="card-title">
+            <span class="icon">📢</span>
+            公告計點名單（手動更新）
+            <span class="count-badge-ann" id="announcement-count">0 人</span>
+            <button class="toggle-btn" id="toggle-announcement" aria-expanded="false">
+                <span id="toggle-label">展開</span>
+                <span class="arrow" id="toggle-arrow">▼</span>
+            </button>
         </div>
+        <div class="announcement-content" id="announcement-content">
+            載入中…
+        </div>
+    </div>
 
-        <div class="toolbar" id="toolbar" style="display:none;">
-            <button id="export-csv">匯出 CSV</button>
-            <button id="export-xls">匯出 XLS</button>
-        </div>
+    <!-- 高亮卡片 -->
+    <div id="highlight" class="card card-highlight" style="display:none;">
+        <div class="card-title"><span class="icon">🔥</span> 7天內超過1篇的作者（僅供當日參考 未包含已刪文）</div>
+        <div id="highlight-content"></div>
+    </div>
+
+    <div class="toolbar" id="toolbar" style="display:none;">
+        <button class="btn btn-primary" id="export-csv">⬇ 匯出 CSV</button>
+        <button class="btn btn-secondary" id="export-xls">⬇ 匯出 XLS</button>
+    </div>
+
+    <div class="table-wrapper">
         <table id="stats-table" style="display:none;">
             <thead>
                 <tr><th>作者</th><th>篇數</th><th>文章 ID</th></tr>
@@ -59,8 +54,10 @@
             <tbody id="stats-body"></tbody>
         </table>
     </div>
+    <div id="empty-message" class="empty-state" style="display:none;">目前尚無資料</div>
 
-    <!-- 引入外部 JavaScript -->
-    <script src="js/main.js"></script>
+</div>
+
+<script src="js/main.js"></script>
 </body>
 </html>
