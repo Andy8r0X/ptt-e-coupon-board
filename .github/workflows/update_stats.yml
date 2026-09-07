@@ -20,7 +20,9 @@ jobs:
           node-version: '20'
 
       - name: Run fetch script
-        run: node fetch_stats.js   # 只保留這一行
+        run: |
+              rm -f state.json stats.json   # 刪除舊的狀態與統計檔
+              node fetch_stats.js           # 重新執行抓取        
 
       - name: Commit and push if changed
         run: |
