@@ -20,9 +20,7 @@ jobs:
           node-version: '20'
 
       - name: Run fetch script
-        run: |
-             rm -f state.json stats.json
-             node fetch_stats.js        
+        run: node fetch_stats.js   # 只保留這一行
 
       - name: Commit and push if changed
         run: |
