@@ -26,6 +26,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add stats.json export/
+          git add stats.json export/ state.json   # <--- 加入 state.json
           git diff --cached --quiet || git commit -m "Update stats.json and export files"
           git push
