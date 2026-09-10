@@ -1,24 +1,27 @@
-// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能（三欄表格版）
+// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能（三欄表格版 已刪除文章不計入 7 天統計）
 // 永久排除的作者名單
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
 let statsData = null;
 
-// ----- 輔助函數：從文章 ID 解析時間戳（秒）-----
+// ----- 從文章 ID 解析時間戳（秒）-----
 function getTimestampFromId(articleId) {
     const match = articleId.match(/M\.(\d+)\./);
     return match ? parseInt(match[1], 10) : 0;
 }
 
-// ----- 計算某作者在最近 N 個自然日內的文章數量 -----
-function countRecentDays(articleIds, days = 7) {
+// ----- 計算最近 N 個自然日內的文章數量（排除已刪除文章）-----
+function countRecentDays(articleIds, deletedIds, days = 7) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - (days - 1));
 
+    const deletedSet = new Set(deletedIds || []);
+
     let count = 0;
     for (const id of articleIds) {
+        if (deletedSet.has(id)) continue;  // ✅ 跳過已刪除文章
         const ts = getTimestampFromId(id);
         if (ts === 0) continue;
         const articleDate = new Date(ts * 1000);
@@ -66,17 +69,14 @@ fetch('announcement.json')
         const countBadge = document.getElementById('announcement-count');
         container.innerHTML = '';
 
-        // 檢查是否有 entries 陣列（新格式）
         if (data.entries && data.entries.length > 0) {
             countBadge.textContent = `${data.entries.length} 人`;
 
-            // 建立表格
             const table = document.createElement('table');
             table.style.width = '100%';
             table.style.borderCollapse = 'collapse';
             table.style.fontSize = '0.9rem';
 
-            // 表頭（三欄）
             const thead = document.createElement('thead');
             thead.innerHTML = `
                 <tr>
@@ -87,11 +87,10 @@ fetch('announcement.json')
             `;
             table.appendChild(thead);
 
-            // 表格內容（三欄）
             const tbody = document.createElement('tbody');
             data.entries.forEach(entry => {
                 const tr = document.createElement('tr');
-                const note = entry.note || ''; // 若無備註則顯示空白
+                const note = entry.note || '';
                 tr.innerHTML = `
                     <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${entry.name}</td>
                     <td style="padding:4px 8px;border-bottom:1px solid rgba(0,0,0,0.05);">${entry.date}</td>
@@ -102,7 +101,6 @@ fetch('announcement.json')
             table.appendChild(tbody);
             container.appendChild(table);
 
-            // 更新時間
             if (data.updatedAt) {
                 const meta = document.createElement('div');
                 meta.textContent = `（更新時間：${data.updatedAt}）`;
@@ -110,7 +108,6 @@ fetch('announcement.json')
                 container.appendChild(meta);
             }
 
-            // 恢復展開狀態
             const isOpen = localStorage.getItem('announcementOpen') === 'true';
             if (isOpen) {
                 container.classList.add('open');
@@ -118,9 +115,7 @@ fetch('announcement.json')
                 document.getElementById('toggle-label').textContent = '收合';
                 document.getElementById('toggle-announcement').setAttribute('aria-expanded', 'true');
             }
-        } 
-        // 向後相容：如果仍使用舊的 lines 格式，轉為純文字顯示
-        else if (data.lines && data.lines.length > 0) {
+        } else if (data.lines && data.lines.length > 0) {
             countBadge.textContent = `${data.lines.length} 人`;
             data.lines.forEach(line => {
                 const p = document.createElement('div');
@@ -151,7 +146,7 @@ fetch('announcement.json')
         document.getElementById('announcement-count').textContent = '0 人';
     });
 
-// ----- 折疊開關事件（需等 DOM 載入完成）-----
+// ----- 折疊開關事件 -----
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-announcement');
     const content = document.getElementById('announcement-content');
@@ -201,10 +196,12 @@ function render(data) {
         const row = document.createElement('tr');
         if (infoObj.count > 2) row.classList.add('high-count');
 
+        // 作者
         const tdAuthor = document.createElement('td');
         tdAuthor.textContent = author;
         row.appendChild(tdAuthor);
 
+        // 篇數
         const tdCount = document.createElement('td');
         let countText = `${infoObj.count}`;
         if (infoObj.deletedCount > 0) {
@@ -218,12 +215,19 @@ function render(data) {
         }
         row.appendChild(tdCount);
 
+        // 文章 ID 列表（已刪除的用刪除線 + 灰色顯示）
         const tdIds = document.createElement('td');
         tdIds.className = 'article-list';
         if (infoObj.articleIds && infoObj.articleIds.length > 0) {
+            const deletedSet = new Set(infoObj.deletedIds || []);
             infoObj.articleIds.forEach(id => {
                 const span = document.createElement('span');
                 span.textContent = id;
+                if (deletedSet.has(id)) {
+                    span.style.textDecoration = 'line-through';
+                    span.style.opacity = '0.45';
+                    span.title = '此文章已被刪除';
+                }
                 tdIds.appendChild(span);
             });
         }
@@ -231,19 +235,20 @@ function render(data) {
         tbody.appendChild(row);
     }
 
-    // 高亮「最近 7 個自然日內超過 1 篇」的作者
+    // ✅ 高亮「7天內超過 1 篇」的作者（排除已刪除文章）
     const highlightAuthors = entries.filter(([, infoObj]) => {
-        return countRecentDays(infoObj.articleIds, 7) > 1;
+        return countRecentDays(infoObj.articleIds, infoObj.deletedIds, 7) > 1;
     });
 
     if (highlightAuthors.length > 0) {
         highlightBox.style.display = 'block';
         const container = document.createElement('div');
         highlightAuthors.forEach(([author, infoObj]) => {
-            const recent = countRecentDays(infoObj.articleIds, 7);
+            const recent = countRecentDays(infoObj.articleIds, infoObj.deletedIds, 7);
             const item = document.createElement('div');
-            let text = `${author}：7天內 ${recent} 篇（總 ${infoObj.count} 篇）`;
-            if (infoObj.deletedCount > 0) text += `，刪除 ${infoObj.deletedCount} 篇`;
+            let text = `${author}：7天內 ${recent} 篇（總 ${infoObj.count} 篇`;
+            if (infoObj.deletedCount > 0) text += `，已刪除 ${infoObj.deletedCount} 篇`;
+            text += '）';
             item.textContent = text;
             item.style.fontWeight = 'bold';
             item.style.marginBottom = '4px';
