@@ -1,4 +1,4 @@
-// js/main.js - 完整安全版本，內建 7 天內超過 1 篇偵測 + 公告折疊功能（三欄表格版 已刪除文章不計入 7 天統計）
+// js/main.js - 完整版本（任兩篇間隔 ≤ 7 天視為違規，排除已刪除文章）
 // 永久排除的作者名單
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
@@ -10,27 +10,28 @@ function getTimestampFromId(articleId) {
     return match ? parseInt(match[1], 10) : 0;
 }
 
-// ----- 計算最近 N 個自然日內的文章數量（排除已刪除文章）-----
-function countRecentDays(articleIds, deletedIds, days = 7) {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - (days - 1));
+// ----- 將時間戳轉為「年月日」的毫秒數（忽略時分秒）-----
+function toDateOnly(ts) {
+    if (!ts) return null;
+    const d = new Date(ts * 1000);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
 
+// ----- 判定：任兩篇未刪除文章，日期差 ≤ 7 天 → 違規 -----
+function hasViolationWithin7Days(articleIds, deletedIds) {
     const deletedSet = new Set(deletedIds || []);
+    const validIds = articleIds.filter(id => !deletedSet.has(id));
 
-    let count = 0;
-    for (const id of articleIds) {
-        if (deletedSet.has(id)) continue;  // ✅ 跳過已刪除文章
-        const ts = getTimestampFromId(id);
-        if (ts === 0) continue;
-        const articleDate = new Date(ts * 1000);
-        const articleDay = new Date(articleDate.getFullYear(), articleDate.getMonth(), articleDate.getDate());
-        if (articleDay >= startDate && articleDay <= today) {
-            count++;
-        }
+    const dates = validIds
+        .map(id => toDateOnly(getTimestampFromId(id)))
+        .filter(d => d !== null)
+        .sort((a, b) => a - b);
+
+    for (let i = 1; i < dates.length; i++) {
+        const diffDays = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
+        if (diffDays <= 7) return true;
     }
-    return count;
+    return false;
 }
 
 // ----- 過濾掉排除名單 -----
@@ -196,12 +197,10 @@ function render(data) {
         const row = document.createElement('tr');
         if (infoObj.count > 2) row.classList.add('high-count');
 
-        // 作者
         const tdAuthor = document.createElement('td');
         tdAuthor.textContent = author;
         row.appendChild(tdAuthor);
 
-        // 篇數
         const tdCount = document.createElement('td');
         let countText = `${infoObj.count}`;
         if (infoObj.deletedCount > 0) {
@@ -215,7 +214,6 @@ function render(data) {
         }
         row.appendChild(tdCount);
 
-        // 文章 ID 列表（已刪除的用刪除線 + 灰色顯示）
         const tdIds = document.createElement('td');
         tdIds.className = 'article-list';
         if (infoObj.articleIds && infoObj.articleIds.length > 0) {
@@ -235,18 +233,17 @@ function render(data) {
         tbody.appendChild(row);
     }
 
-    // ✅ 高亮「7天內超過 1 篇」的作者（排除已刪除文章）
+    // ✅ 高亮「任兩篇未刪除文章間隔 ≤ 7 天」的作者
     const highlightAuthors = entries.filter(([, infoObj]) => {
-        return countRecentDays(infoObj.articleIds, infoObj.deletedIds, 7) > 1;
+        return hasViolationWithin7Days(infoObj.articleIds, infoObj.deletedIds);
     });
 
     if (highlightAuthors.length > 0) {
         highlightBox.style.display = 'block';
         const container = document.createElement('div');
         highlightAuthors.forEach(([author, infoObj]) => {
-            const recent = countRecentDays(infoObj.articleIds, infoObj.deletedIds, 7);
             const item = document.createElement('div');
-            let text = `${author}：7天內 ${recent} 篇（總 ${infoObj.count} 篇`;
+            let text = `${author}：曾在 7 天內發超過 1 篇（總 ${infoObj.count} 篇`;
             if (infoObj.deletedCount > 0) text += `，已刪除 ${infoObj.deletedCount} 篇`;
             text += '）';
             item.textContent = text;
