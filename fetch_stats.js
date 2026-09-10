@@ -5,7 +5,7 @@ const path = require('path');
 
 // ===== 可調參數 =====
 const INITIAL_START_PAGE = 3892;   // 當 state.json 不存在時的起始頁碼
-const MAX_PAGES_TO_FETCH = 50;     // 每次執行最多抓取頁數
+const MAX_PAGES_TO_FETCH = 200;     // 每次執行最多抓取頁數
 const EMPTY_PAGE_THRESHOLD = 3;    // 連續 N 頁無新文章即停止
 const DELAY_MS = 800;              // 請求間隔（毫秒）
 const START_DATE = '8/29';         // 統計起始日期（包含），格式 M/D
