@@ -336,3 +336,39 @@ tr:hover td { background: rgba(255,255,255,0.5); }
 .article-list::-webkit-scrollbar { width: 4px; }
 .article-list::-webkit-scrollbar-track { background: transparent; }
 .article-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* ⚠️ 3 小時內連續發文卡片 */
+.card-rapid {
+    border-left: 4px solid #e74c3c;
+    background: rgba(255, 235, 235, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.card-rapid .card-title { color: #c0392b; }
+
+.rapid-item {
+    display: block;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    border: 1px solid rgba(231, 76, 60, 0.15);
+}
+.rapid-item .author {
+    font-weight: 700;
+    color: #c0392b;
+}
+.rapid-item .time {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.8rem;
+    color: #4a5a6a;
+    margin-left: 6px;
+}
+.rapid-item .diff {
+    font-size: 0.8rem;
+    color: #e74c3c;
+    font-weight: 600;
+    margin-left: 6px;
+}
