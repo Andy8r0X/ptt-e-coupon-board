@@ -23,10 +23,18 @@
         <div id="rapid-content"></div>
     </div>
 
-    <!-- 📅 每日發文日曆 -->
+    <!-- 📅 每日發文日曆（可收合） -->
     <div class="card card-calendar">
-        <div class="card-title"><span class="icon">📅</span> 每日發文統計</div>
-        <div id="calendar-content"></div>
+        <div class="card-title">
+            <span class="icon">📅</span> 每日發文統計
+            <button class="toggle-btn toggle-calendar" id="toggle-calendar" aria-expanded="true">
+                <span id="calendar-toggle-label">收合</span>
+                <span class="arrow" id="calendar-toggle-arrow">▼</span>
+            </button>
+        </div>
+        <div class="calendar-content-wrapper" id="calendar-wrapper">
+            <div id="calendar-content"></div>
+        </div>
     </div>
 
     <!-- 工具列 -->
