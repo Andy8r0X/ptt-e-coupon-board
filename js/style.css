@@ -210,35 +210,37 @@ body {
     padding: 2px 0;
 }
 
-/* 日曆格子（縮小、緊湊） */
+/* 日曆格子（日期左上角、文章數置中放大） */
 .calendar-cell {
     aspect-ratio: 1 / 1;
     background: rgba(255, 255, 255, 0.7);
     border-radius: 6px;
-    padding: 2px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 34px;
-    transition: transform 0.15s, box-shadow 0.15s;
+    padding: 2px 4px;
+    min-height: 42px;
     position: relative;
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 .calendar-cell.empty {
     background: transparent;
 }
 .calendar-cell .calendar-day {
+    position: absolute;
+    top: 3px;
+    left: 5px;
     font-size: 0.6rem;
     color: #a0aec0;
     font-weight: 500;
     line-height: 1;
 }
 .calendar-cell .calendar-count {
-    font-size: 0.95rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.15rem;
     font-weight: 700;
     color: #2471a3;
-    line-height: 1.1;
-    margin-top: 1px;
+    line-height: 1;
 }
 .calendar-cell.has-articles {
     background: rgba(52, 152, 219, 0.1);
@@ -415,9 +417,9 @@ tr:hover td { background: rgba(255,255,255,0.5); }
     .btn { padding: 8px 18px; font-size: 0.8rem; }
     td, th { padding: 10px 12px; font-size: 0.8rem; }
     .toolbar { gap: 8px; }
-    .calendar-cell { min-height: 30px; }
-    .calendar-cell .calendar-count { font-size: 0.8rem; }
-    .calendar-cell .calendar-day { font-size: 0.55rem; }
+    .calendar-cell { min-height: 36px; }
+    .calendar-cell .calendar-count { font-size: 0.95rem; }
+    .calendar-cell .calendar-day { font-size: 0.55rem; top: 2px; left: 4px; }
     .calendar-header .cal-title { font-size: 0.85rem; }
 }
 
