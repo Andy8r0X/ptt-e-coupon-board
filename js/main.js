@@ -106,15 +106,9 @@ function buildCalendarData(data) {
 function getMonthStats(year, month) {
     const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
     let total = 0;
-    const uniqueIdsInMonth = new Set();
+    const uniqueArticleIds = new Set();
+    const uniqueAuthors = new Set();
 
-    for (const [key, count] of Object.entries(calendarDateCounts)) {
-        if (key.startsWith(prefix)) {
-            total += count;
-        }
-    }
-
-    // 計算該月不重複的文章 ID（從各作者資料中找）
     if (statsData) {
         for (const [author, info] of Object.entries(statsData.stats)) {
             if (EXCLUDED_AUTHORS.includes(author)) continue;
@@ -123,13 +117,19 @@ function getMonthStats(year, month) {
                 const ts = getTimestampFromId(id);
                 const key = getDateKey(ts);
                 if (key && key.startsWith(prefix)) {
-                    uniqueIdsInMonth.add(id);
+                    total++;
+                    uniqueArticleIds.add(id);
+                    uniqueAuthors.add(author);
                 }
             }
         }
     }
 
-    return { total, uniqueCount: uniqueIdsInMonth.size };
+    return {
+        total,
+        uniqueArticleCount: uniqueArticleIds.size,
+        uniqueAuthorCount: uniqueAuthors.size
+    };
 }
 
 // ----- 依數量取得顏色等級 -----
@@ -146,7 +146,7 @@ function renderCalendar() {
     const container = document.getElementById('calendar-content');
     container.innerHTML = '';
 
-    const { total, uniqueCount } = getMonthStats(calYear, calMonth);
+    const { total, uniqueArticleCount, uniqueAuthorCount } = getMonthStats(calYear, calMonth);
 
     // 頂部導航列
     const header = document.createElement('div');
@@ -165,7 +165,7 @@ function renderCalendar() {
     title.className = 'cal-title';
     title.innerHTML = `${calYear}年${calMonth + 1}月
         <span class="cal-total">(總計 ${total} 篇)</span>
-        <span class="cal-uniq">不重複 ID：${uniqueCount} 個</span>`;
+        <span class="cal-uniq">不重複作者：${uniqueAuthorCount} 人 ｜ 不重複文章 ID：${uniqueArticleCount} 個</span>`;
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'cal-nav-btn';
