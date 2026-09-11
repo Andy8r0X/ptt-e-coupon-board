@@ -102,11 +102,10 @@ function buildCalendarData(data) {
     }
 }
 
-// ----- 取得某月的統計資訊 -----
+// ----- 取得某月的統計資訊（只計算總篇數與不重複作者）-----
 function getMonthStats(year, month) {
     const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
     let total = 0;
-    const uniqueArticleIds = new Set();
     const uniqueAuthors = new Set();
 
     if (statsData) {
@@ -118,7 +117,6 @@ function getMonthStats(year, month) {
                 const key = getDateKey(ts);
                 if (key && key.startsWith(prefix)) {
                     total++;
-                    uniqueArticleIds.add(id);
                     uniqueAuthors.add(author);
                 }
             }
@@ -127,7 +125,6 @@ function getMonthStats(year, month) {
 
     return {
         total,
-        uniqueArticleCount: uniqueArticleIds.size,
         uniqueAuthorCount: uniqueAuthors.size
     };
 }
@@ -146,7 +143,7 @@ function renderCalendar() {
     const container = document.getElementById('calendar-content');
     container.innerHTML = '';
 
-    const { total, uniqueArticleCount, uniqueAuthorCount } = getMonthStats(calYear, calMonth);
+    const { total, uniqueAuthorCount } = getMonthStats(calYear, calMonth);
 
     // 頂部導航列
     const header = document.createElement('div');
@@ -165,7 +162,7 @@ function renderCalendar() {
     title.className = 'cal-title';
     title.innerHTML = `${calYear}年${calMonth + 1}月
         <span class="cal-total">(總計 ${total} 篇)</span>
-        <span class="cal-uniq">不重複作者：${uniqueAuthorCount} 人 ｜ 不重複文章 ID：${uniqueArticleCount} 個</span>`;
+        <span class="cal-uniq">不重複作者：${uniqueAuthorCount} 人</span>`;
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'cal-nav-btn';
