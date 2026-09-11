@@ -1,4 +1,4 @@
-// js/main.js - 3小時內連續發文偵測 + 日曆 + 文章ID收合
+// js/main.js - 3小時內連續發文偵測 + 日曆（可收合） + 文章ID收合
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
 const MAX_ID_DISPLAY = 10;  // 文章 ID 超過此數量時收合
@@ -384,6 +384,35 @@ function render(data) {
         rapidBox.style.display = 'none';
     }
 }
+
+// ----- 日曆收合開關（DOM 載入後初始化）-----
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-calendar');
+    const wrapper = document.getElementById('calendar-wrapper');
+    const arrow = document.getElementById('calendar-toggle-arrow');
+    const label = document.getElementById('calendar-toggle-label');
+
+    if (!toggleBtn || !wrapper) return;
+
+    // 讀取偏好（預設展開）
+    const isCollapsed = localStorage.getItem('calendarCollapsed') === 'true';
+    if (isCollapsed) {
+        wrapper.classList.add('collapsed');
+        arrow.classList.add('open');
+        label.textContent = '展開';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+    } else {
+        toggleBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        const nowCollapsed = wrapper.classList.toggle('collapsed');
+        arrow.classList.toggle('open', nowCollapsed);
+        label.textContent = nowCollapsed ? '展開' : '收合';
+        this.setAttribute('aria-expanded', String(!nowCollapsed));
+        localStorage.setItem('calendarCollapsed', nowCollapsed);
+    });
+});
 
 // ----- 匯出 CSV -----
 document.getElementById('export-csv').addEventListener('click', () => {
