@@ -1,7 +1,13 @@
-// js/main.js - 3小時內連續發文偵測版
+// js/main.js - 3小時內連續發文偵測 + 日曆 + 文章ID收合
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
+const MAX_ID_DISPLAY = 10;  // 文章 ID 超過此數量時收合
+
 let statsData = null;
+let calendarDateCounts = {};   // { "YYYY-MM-DD": count }
+let calendarUniqueIds = new Set();
+let calYear = null;
+let calMonth = null;
 
 // ----- 從文章 ID 解析時間戳（秒）-----
 function getTimestampFromId(articleId) {
@@ -9,7 +15,7 @@ function getTimestampFromId(articleId) {
     return match ? parseInt(match[1], 10) : 0;
 }
 
-// ----- 格式化時間戳為可讀字串（YYYY-MM-DD HH:MM）-----
+// ----- 格式化時間戳為可讀字串 -----
 function formatTimestamp(ts) {
     if (!ts) return '';
     const d = new Date(ts * 1000);
@@ -21,8 +27,14 @@ function formatTimestamp(ts) {
     return `${y}-${m}-${day} ${h}:${min}`;
 }
 
+// ----- 取得日期 key（YYYY-MM-DD）-----
+function getDateKey(ts) {
+    if (!ts) return null;
+    const d = new Date(ts * 1000);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 // ----- 偵測 3 小時內連續發文 -----
-// 回傳：{ hasRapid: bool, groups: [{ first: {id, ts}, second: {id, ts}, diffMin: number }] }
 function findRapidPosts(articleIds, deletedIds, hours = 3) {
     const deletedSet = new Set(deletedIds || []);
     const validIds = articleIds.filter(id => !deletedSet.has(id));
@@ -32,7 +44,7 @@ function findRapidPosts(articleIds, deletedIds, hours = 3) {
         .filter(p => p.ts > 0)
         .sort((a, b) => a.ts - b.ts);
 
-    const threshold = hours * 3600; // 3 小時 = 10800 秒
+    const threshold = hours * 3600;
     const groups = [];
 
     for (let i = 1; i < posts.length; i++) {
@@ -59,6 +71,171 @@ function getFilteredStats(data) {
     return filtered;
 }
 
+// ----- 建立日曆資料（從所有作者的文章）-----
+function buildCalendarData(data) {
+    calendarDateCounts = {};
+    calendarUniqueIds = new Set();
+
+    for (const [author, info] of Object.entries(data.stats)) {
+        if (EXCLUDED_AUTHORS.includes(author)) continue;
+        const ids = info.articleIds || [];
+        for (const id of ids) {
+            calendarUniqueIds.add(id);
+            const ts = getTimestampFromId(id);
+            const key = getDateKey(ts);
+            if (!key) continue;
+            calendarDateCounts[key] = (calendarDateCounts[key] || 0) + 1;
+        }
+    }
+
+    // 預設顯示最新月份
+    const keys = Object.keys(calendarDateCounts).sort();
+    if (keys.length > 0) {
+        const latest = keys[keys.length - 1];
+        const [y, m] = latest.split('-').map(Number);
+        calYear = y;
+        calMonth = m - 1;
+    } else {
+        const now = new Date();
+        calYear = now.getFullYear();
+        calMonth = now.getMonth();
+    }
+}
+
+// ----- 取得某月的統計資訊 -----
+function getMonthStats(year, month) {
+    const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+    let total = 0;
+    const uniqueIdsInMonth = new Set();
+
+    for (const [key, count] of Object.entries(calendarDateCounts)) {
+        if (key.startsWith(prefix)) {
+            total += count;
+        }
+    }
+
+    // 計算該月不重複的文章 ID（從各作者資料中找）
+    if (statsData) {
+        for (const [author, info] of Object.entries(statsData.stats)) {
+            if (EXCLUDED_AUTHORS.includes(author)) continue;
+            const ids = info.articleIds || [];
+            for (const id of ids) {
+                const ts = getTimestampFromId(id);
+                const key = getDateKey(ts);
+                if (key && key.startsWith(prefix)) {
+                    uniqueIdsInMonth.add(id);
+                }
+            }
+        }
+    }
+
+    return { total, uniqueCount: uniqueIdsInMonth.size };
+}
+
+// ----- 依數量取得顏色等級 -----
+function getCountLevel(count) {
+    if (count === 0) return '';
+    if (count <= 3) return 'count-lv1';
+    if (count <= 8) return 'count-lv2';
+    if (count <= 15) return 'count-lv3';
+    return 'count-lv4';
+}
+
+// ----- 渲染日曆 -----
+function renderCalendar() {
+    const container = document.getElementById('calendar-content');
+    container.innerHTML = '';
+
+    const { total, uniqueCount } = getMonthStats(calYear, calMonth);
+
+    // 頂部導航列
+    const header = document.createElement('div');
+    header.className = 'calendar-header';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'cal-nav-btn';
+    prevBtn.textContent = '◀';
+    prevBtn.onclick = () => {
+        calMonth--;
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        renderCalendar();
+    };
+
+    const title = document.createElement('div');
+    title.className = 'cal-title';
+    title.innerHTML = `${calYear}年${calMonth + 1}月
+        <span class="cal-total">(總計 ${total} 篇)</span>
+        <span class="cal-uniq">不重複 ID：${uniqueCount} 個</span>`;
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'cal-nav-btn';
+    nextBtn.textContent = '▶';
+    nextBtn.onclick = () => {
+        calMonth++;
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        renderCalendar();
+    };
+
+    header.appendChild(prevBtn);
+    header.appendChild(title);
+    header.appendChild(nextBtn);
+    container.appendChild(header);
+
+    // 星期標題
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const grid = document.createElement('div');
+    grid.className = 'calendar-grid';
+
+    weekdays.forEach(w => {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-weekday';
+        cell.textContent = w;
+        grid.appendChild(cell);
+    });
+
+    // 計算首日與天數
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    // 空白格
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-cell empty';
+        grid.appendChild(empty);
+    }
+
+    // 日期格
+    for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+
+        const dateKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const count = calendarDateCounts[dateKey] || 0;
+
+        if (count > 0) {
+            cell.classList.add('has-articles');
+            cell.classList.add(getCountLevel(count));
+        }
+
+        const dayNum = document.createElement('div');
+        dayNum.className = 'calendar-day';
+        dayNum.textContent = day;
+        cell.appendChild(dayNum);
+
+        if (count > 0) {
+            const countEl = document.createElement('div');
+            countEl.className = 'calendar-count';
+            countEl.textContent = count;
+            cell.appendChild(countEl);
+        }
+
+        cell.title = `${dateKey}：${count} 篇`;
+        grid.appendChild(cell);
+    }
+
+    container.appendChild(grid);
+}
+
 // ----- 載入 stats.json -----
 fetch('stats.json')
     .then(res => {
@@ -67,11 +244,25 @@ fetch('stats.json')
     })
     .then(data => {
         statsData = data;
+        buildCalendarData(data);
         render(data);
+        renderCalendar();
     })
     .catch(err => {
         document.getElementById('info').textContent = '載入失敗：' + err.message;
     });
+
+// ----- 建立單一文章 ID 元素 -----
+function createIdItem(id, deletedSet) {
+    const el = document.createElement('div');
+    el.className = 'id-item';
+    el.textContent = id;
+    if (deletedSet.has(id)) {
+        el.classList.add('deleted');
+        el.title = '此文章已被刪除';
+    }
+    return el;
+}
 
 // ----- 主渲染函數 -----
 function render(data) {
@@ -101,14 +292,15 @@ function render(data) {
     table.style.display = 'table';
     toolbar.style.display = 'block';
 
-    // 填入表格
     for (const [author, infoObj] of entries) {
         const row = document.createElement('tr');
 
+        // 作者
         const tdAuthor = document.createElement('td');
         tdAuthor.textContent = author;
         row.appendChild(tdAuthor);
 
+        // 篇數
         const tdCount = document.createElement('td');
         let countText = `${infoObj.count}`;
         if (infoObj.deletedCount > 0) {
@@ -122,26 +314,42 @@ function render(data) {
         }
         row.appendChild(tdCount);
 
+        // 文章 ID（垂直排列 + 收合）
         const tdIds = document.createElement('td');
         tdIds.className = 'article-list';
-        if (infoObj.articleIds && infoObj.articleIds.length > 0) {
-            const deletedSet = new Set(infoObj.deletedIds || []);
-            infoObj.articleIds.forEach(id => {
-                const span = document.createElement('span');
-                span.textContent = id;
-                if (deletedSet.has(id)) {
-                    span.style.textDecoration = 'line-through';
-                    span.style.opacity = '0.45';
-                    span.title = '此文章已被刪除';
-                }
-                tdIds.appendChild(span);
-            });
+
+        const ids = infoObj.articleIds || [];
+        const deletedSet = new Set(infoObj.deletedIds || []);
+
+        if (ids.length <= MAX_ID_DISPLAY) {
+            ids.forEach(id => tdIds.appendChild(createIdItem(id, deletedSet)));
+        } else {
+            const visibleBox = document.createElement('div');
+            ids.slice(0, MAX_ID_DISPLAY).forEach(id => visibleBox.appendChild(createIdItem(id, deletedSet)));
+            tdIds.appendChild(visibleBox);
+
+            const hiddenBox = document.createElement('div');
+            hiddenBox.style.display = 'none';
+            ids.slice(MAX_ID_DISPLAY).forEach(id => hiddenBox.appendChild(createIdItem(id, deletedSet)));
+            tdIds.appendChild(hiddenBox);
+
+            const remaining = ids.length - MAX_ID_DISPLAY;
+            const toggle = document.createElement('button');
+            toggle.className = 'id-toggle';
+            toggle.textContent = `展開剩餘 ${remaining} 個`;
+            toggle.onclick = () => {
+                const isHidden = hiddenBox.style.display === 'none';
+                hiddenBox.style.display = isHidden ? 'block' : 'none';
+                toggle.textContent = isHidden ? '收合' : `展開剩餘 ${remaining} 個`;
+            };
+            tdIds.appendChild(toggle);
         }
+
         row.appendChild(tdIds);
         tbody.appendChild(row);
     }
 
-    // ----- 偵測 3 小時內連續發文 -----
+    // ----- 3 小時內連續發文 -----
     const rapidAuthors = [];
     for (const [author, infoObj] of entries) {
         const result = findRapidPosts(infoObj.articleIds, infoObj.deletedIds, 3);
