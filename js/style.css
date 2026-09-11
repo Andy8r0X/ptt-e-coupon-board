@@ -67,6 +67,34 @@ body {
     font-size: 1.2rem;
 }
 
+/* 收合按鈕（通用） */
+.toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #3498db;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: rgba(52, 152, 219, 0.1);
+    transition: background 0.2s;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.toggle-btn:hover {
+    background: rgba(52, 152, 219, 0.2);
+}
+.toggle-btn .arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+.toggle-btn .arrow.open {
+    transform: rotate(180deg);
+}
+
 /* ⚠️ 3 小時內連續發文卡片 */
 .card-rapid {
     border-left: 4px solid #e74c3c;
@@ -112,20 +140,34 @@ body {
 }
 .card-calendar .card-title { color: #2471a3; }
 
+/* 日曆收合容器 */
+.calendar-content-wrapper {
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    max-height: 2000px;
+    opacity: 1;
+    margin-top: 0;
+}
+.calendar-content-wrapper.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: -10px;
+}
+
 .calendar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     gap: 10px;
 }
 .calendar-header .cal-nav-btn {
     background: rgba(52, 152, 219, 0.1);
     border: none;
     color: #2471a3;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    padding: 6px 14px;
+    padding: 4px 12px;
     border-radius: 100px;
     cursor: pointer;
     transition: background 0.2s;
@@ -136,46 +178,49 @@ body {
 .calendar-header .cal-title {
     flex: 1;
     text-align: center;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #1a2634;
 }
 .calendar-header .cal-title .cal-total {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #2471a3;
     font-weight: 600;
     margin-left: 6px;
 }
 .calendar-header .cal-title .cal-uniq {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #6b7a8a;
     font-weight: 500;
     display: block;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
+/* 日曆格線 */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 3px;
 }
 .calendar-weekday {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: #6b7a8a;
-    padding: 4px 0;
+    padding: 2px 0;
 }
+
+/* 日曆格子（縮小、緊湊） */
 .calendar-cell {
     aspect-ratio: 1 / 1;
     background: rgba(255, 255, 255, 0.7);
-    border-radius: 8px;
-    padding: 4px;
+    border-radius: 6px;
+    padding: 2px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    min-height: 48px;
+    min-height: 34px;
     transition: transform 0.15s, box-shadow 0.15s;
     position: relative;
 }
@@ -183,22 +228,23 @@ body {
     background: transparent;
 }
 .calendar-cell .calendar-day {
-    font-size: 0.7rem;
-    color: #8a9aa8;
+    font-size: 0.6rem;
+    color: #a0aec0;
     font-weight: 500;
-    align-self: flex-start;
+    line-height: 1;
 }
 .calendar-cell .calendar-count {
     font-size: 0.95rem;
     font-weight: 700;
     color: #2471a3;
-    margin-top: auto;
+    line-height: 1.1;
+    margin-top: 1px;
 }
 .calendar-cell.has-articles {
     background: rgba(52, 152, 219, 0.1);
 }
 .calendar-cell.has-articles:hover {
-    transform: scale(1.05);
+    transform: scale(1.08);
     box-shadow: 0 4px 12px rgba(52, 152, 219, 0.25);
     z-index: 1;
 }
@@ -369,9 +415,10 @@ tr:hover td { background: rgba(255,255,255,0.5); }
     .btn { padding: 8px 18px; font-size: 0.8rem; }
     td, th { padding: 10px 12px; font-size: 0.8rem; }
     .toolbar { gap: 8px; }
-    .calendar-cell { min-height: 40px; }
+    .calendar-cell { min-height: 30px; }
     .calendar-cell .calendar-count { font-size: 0.8rem; }
-    .calendar-cell .calendar-day { font-size: 0.65rem; }
+    .calendar-cell .calendar-day { font-size: 0.55rem; }
+    .calendar-header .cal-title { font-size: 0.85rem; }
 }
 
 /* 卷軸美化 */
