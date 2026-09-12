@@ -1,10 +1,11 @@
-// js/main.js - 3小時內連續發文偵測 + 日曆（可收合） + 文章ID收合
+// js/main.js - 7日內單日多篇 + 3小時連續發文 + 日曆 + 文章ID收合
 const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
 
-const MAX_ID_DISPLAY = 10;  // 文章 ID 超過此數量時收合
+const MAX_ID_DISPLAY = 10;   // 文章 ID 超過此數量時收合
+const DAILY_LOOKBACK_DAYS = 7;  // 檢查最近 N 天的單日多篇
 
 let statsData = null;
-let calendarDateCounts = {};   // { "YYYY-MM-DD": count }
+let calendarDateCounts = {};
 let calendarUniqueIds = new Set();
 let calYear = null;
 let calMonth = null;
@@ -60,6 +61,44 @@ function findRapidPosts(articleIds, deletedIds, hours = 3) {
     return { hasRapid: groups.length > 0, groups };
 }
 
+// ----- 偵測最近 N 天內，是否有單日發文 ≥ 2 篇 -----
+// 回傳：[{ date: 'YYYY-MM-DD', count: n, ids: [...] }, ...]（依日期新→舊排序）
+function findDailyMultiPosts(articleIds, deletedIds, days = DAILY_LOOKBACK_DAYS) {
+    const deletedSet = new Set(deletedIds || []);
+    const validIds = articleIds.filter(id => !deletedSet.has(id));
+
+    // 今天往前推 days-1 天（含今天，共 days 天）
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - (days - 1));
+
+    // 統計每天的文章數量
+    const dailyMap = {};
+    for (const id of validIds) {
+        const ts = getTimestampFromId(id);
+        if (!ts) continue;
+        const d = new Date(ts * 1000);
+        const dayOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        if (dayOnly < startDate || dayOnly > today) continue;
+
+        const key = `${dayOnly.getFullYear()}-${String(dayOnly.getMonth()+1).padStart(2,'0')}-${String(dayOnly.getDate()).padStart(2,'0')}`;
+        if (!dailyMap[key]) dailyMap[key] = { count: 0, ids: [] };
+        dailyMap[key].count++;
+        dailyMap[key].ids.push(id);
+    }
+
+    // 只保留 count ≥ 2 的日期，並依日期新→舊排序
+    const result = [];
+    for (const [date, info] of Object.entries(dailyMap)) {
+        if (info.count >= 2) {
+            result.push({ date, count: info.count, ids: info.ids });
+        }
+    }
+    result.sort((a, b) => b.date.localeCompare(a.date));  // 新→舊
+    return result;
+}
+
 // ----- 過濾掉排除名單 -----
 function getFilteredStats(data) {
     const filtered = {};
@@ -71,7 +110,7 @@ function getFilteredStats(data) {
     return filtered;
 }
 
-// ----- 建立日曆資料（從所有作者的文章）-----
+// ----- 建立日曆資料 -----
 function buildCalendarData(data) {
     calendarDateCounts = {};
     calendarUniqueIds = new Set();
@@ -88,7 +127,6 @@ function buildCalendarData(data) {
         }
     }
 
-    // 預設顯示最新月份
     const keys = Object.keys(calendarDateCounts).sort();
     if (keys.length > 0) {
         const latest = keys[keys.length - 1];
@@ -102,7 +140,7 @@ function buildCalendarData(data) {
     }
 }
 
-// ----- 取得某月的統計資訊（只計算總篇數與不重複作者）-----
+// ----- 取得某月的統計資訊 -----
 function getMonthStats(year, month) {
     const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
     let total = 0;
@@ -145,7 +183,6 @@ function renderCalendar() {
 
     const { total, uniqueAuthorCount } = getMonthStats(calYear, calMonth);
 
-    // 頂部導航列
     const header = document.createElement('div');
     header.className = 'calendar-header';
 
@@ -178,7 +215,6 @@ function renderCalendar() {
     header.appendChild(nextBtn);
     container.appendChild(header);
 
-    // 星期標題
     const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
     const grid = document.createElement('div');
     grid.className = 'calendar-grid';
@@ -190,18 +226,15 @@ function renderCalendar() {
         grid.appendChild(cell);
     });
 
-    // 計算首日與天數
     const firstDay = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
-    // 空白格
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'calendar-cell empty';
         grid.appendChild(empty);
     }
 
-    // 日期格
     for (let day = 1; day <= daysInMonth; day++) {
         const cell = document.createElement('div');
         cell.className = 'calendar-cell';
@@ -269,6 +302,8 @@ function render(data) {
     const toolbar = document.getElementById('toolbar');
     const rapidBox = document.getElementById('rapid');
     const rapidContent = document.getElementById('rapid-content');
+    const dailyMultiBox = document.getElementById('daily-multi');
+    const dailyMultiContent = document.getElementById('daily-multi-content');
 
     const filteredStats = getFilteredStats(data);
     const entries = Object.entries(filteredStats).sort((a, b) => a[0].localeCompare(b[0]));
@@ -277,27 +312,28 @@ function render(data) {
 
     tbody.innerHTML = '';
     rapidContent.innerHTML = '';
+    if (dailyMultiContent) dailyMultiContent.innerHTML = '';
 
     if (entries.length === 0) {
         info.textContent += '（無資料）';
         table.style.display = 'none';
         toolbar.style.display = 'none';
         rapidBox.style.display = 'none';
+        if (dailyMultiBox) dailyMultiBox.style.display = 'none';
         return;
     }
 
     table.style.display = 'table';
     toolbar.style.display = 'block';
 
+    // ----- 填入表格 -----
     for (const [author, infoObj] of entries) {
         const row = document.createElement('tr');
 
-        // 作者
         const tdAuthor = document.createElement('td');
         tdAuthor.textContent = author;
         row.appendChild(tdAuthor);
 
-        // 篇數
         const tdCount = document.createElement('td');
         let countText = `${infoObj.count}`;
         if (infoObj.deletedCount > 0) {
@@ -311,7 +347,6 @@ function render(data) {
         }
         row.appendChild(tdCount);
 
-        // 文章 ID（垂直排列 + 收合）
         const tdIds = document.createElement('td');
         tdIds.className = 'article-list';
 
@@ -383,9 +418,49 @@ function render(data) {
     } else {
         rapidBox.style.display = 'none';
     }
+
+    // ----- 7 日內單日發文 ≥ 2 篇 -----
+    const dailyMultiAuthors = [];
+    for (const [author, infoObj] of entries) {
+        const days = findDailyMultiPosts(infoObj.articleIds, infoObj.deletedIds, DAILY_LOOKBACK_DAYS);
+        if (days.length > 0) {
+            dailyMultiAuthors.push({ author, days });
+        }
+    }
+
+    if (dailyMultiBox && dailyMultiContent) {
+        if (dailyMultiAuthors.length > 0) {
+            dailyMultiBox.style.display = 'block';
+            dailyMultiAuthors.forEach(({ author, days }) => {
+                days.forEach(day => {
+                    const item = document.createElement('div');
+                    item.className = 'rapid-item';
+
+                    const authorSpan = document.createElement('span');
+                    authorSpan.className = 'author';
+                    authorSpan.textContent = author;
+                    item.appendChild(authorSpan);
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'time';
+                    timeSpan.textContent = `｜${day.date} 發了 ${day.count} 篇`;
+                    item.appendChild(timeSpan);
+
+                    const diffSpan = document.createElement('span');
+                    diffSpan.className = 'diff';
+                    diffSpan.textContent = `（${day.ids.join('、')}）`;
+                    item.appendChild(diffSpan);
+
+                    dailyMultiContent.appendChild(item);
+                });
+            });
+        } else {
+            dailyMultiBox.style.display = 'none';
+        }
+    }
 }
 
-// ----- 日曆收合開關（DOM 載入後初始化）-----
+// ----- 日曆收合開關 -----
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggle-calendar');
     const wrapper = document.getElementById('calendar-wrapper');
@@ -394,7 +469,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!toggleBtn || !wrapper) return;
 
-    // 讀取偏好（預設展開）
     const isCollapsed = localStorage.getItem('calendarCollapsed') === 'true';
     if (isCollapsed) {
         wrapper.classList.add('collapsed');
