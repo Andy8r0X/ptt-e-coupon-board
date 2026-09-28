@@ -4,11 +4,12 @@ const fs = require('fs');
 const path = require('path');
 
 // ===== 可調參數 =====
-const INITIAL_START_PAGE = 3813;   // 當 state.json 不存在時的起始頁碼
-const MAX_PAGES_TO_FETCH = 80;     // 每次執行最多抓取頁數
-const EMPTY_PAGE_THRESHOLD = 80;    // 連續 N 頁無新文章即停止
-const DELAY_MS = 800;              // 請求間隔（毫秒）
-const START_DATE = '8/29';         // 統計起始日期（包含），格式 M/D
+const INITIAL_START_PAGE = 3813;
+const MAX_PAGES_TO_FETCH = 80;
+const EMPTY_PAGE_THRESHOLD = 5;      // 改回合理值，避免一次抓太多
+const DELAY_MS = 800;
+const START_DATE = '8/29';
+const DEBUG_HTML = false;             // 設為 true 會印出第一頁的 HTML 片段
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
@@ -16,7 +17,6 @@ const STATE_FILE = 'state.json';
 const STATS_FILE = 'stats.json';
 const EXPORT_DIR = 'export';
 
-// 將日期 M/D 轉為數字 MMDD 以便比較
 function dateToNum(dateStr) {
     const parts = dateStr.trim().split('/');
     if (parts.length !== 2) return 0;
@@ -32,15 +32,12 @@ function getTodayStr() {
     return `${now.getMonth() + 1}/${now.getDate()}`;
 }
 
-/**
- * 抓取單一頁面 HTML，若 404 則拋出錯誤
- */
 function fetchPage(url) {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
                 'Cookie': 'over18=1',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
         };
         https.get(url, options, (res) => {
@@ -55,9 +52,6 @@ function fetchPage(url) {
     });
 }
 
-/**
- * 從標題中提取原始作者（用於已刪除文章）
- */
 function extractOriginalAuthor(titleHtml) {
     let match = titleHtml.match(/&lt;([^&]+)&gt;/);
     if (match) return match[1].trim();
@@ -70,37 +64,77 @@ function extractOriginalAuthor(titleHtml) {
 }
 
 /**
- * 解析單頁文章，回傳新文章列表
+ * 解析單頁文章（更健壯版，兼容 PTT 新舊版 HTML 結構）
  */
-function parsePage(html, knownIds, authorStats, pageLabel, startDateNum) {
+function parsePage(html, knownIds, authorStats, pageLabel, startDateNum, debug = false) {
     const newArticles = [];
     const parts = html.split('<div class="r-ent">');
+
+    if (debug) {
+        console.log(`[DEBUG] 頁面分割後共 ${parts.length - 1} 個 r-ent 區塊`);
+        if (parts.length > 1) {
+            console.log(`[DEBUG] 第一個區塊內容（前 800 字元）：`);
+            console.log(parts[1].substring(0, 800));
+        }
+    }
+
     for (let i = 1; i < parts.length; i++) {
         const block = parts[i];
 
-        const dateMatch = block.match(/<div class="date">(.*?)<\/div>/);
-        if (!dateMatch) continue;
+        // --- 日期 ---
+        const dateMatch = block.match(/<div class="date">\s*([^<]*?)\s*<\/div>/);
+        if (!dateMatch) {
+            if (debug) console.log(`[DEBUG] 第 ${i} 個區塊無日期`);
+            continue;
+        }
         const dateText = dateMatch[1].trim();
         if (!dateText) continue;
 
         const dateNum = dateToNum(dateText);
         if (dateNum < startDateNum) continue;
 
+        // --- 作者 ---
         let authorText = '';
-        const authorMatch = block.match(/<div class="author">(.*?)<\/div>/);
+        const authorMatch = block.match(/<div class="author">\s*([^<]*?)\s*<\/div>/);
         if (authorMatch) authorText = authorMatch[1].trim();
 
-        const titleMatch = block.match(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
-        if (!titleMatch) continue;
-        const href = titleMatch[1];
-        const titleHtml = titleMatch[2];
+        // --- 標題連結（優先從 title 區塊內找）---
+        let href = '';
+        let titleHtml = '';
+        const titleSection = block.match(/<div class="title">([\s\S]*?)<\/div>/);
+        if (titleSection) {
+            const linkMatch = titleSection[1].match(/<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+            if (linkMatch) {
+                href = linkMatch[1];
+                titleHtml = linkMatch[2];
+            }
+        }
 
-        const idMatch = href.match(/\/(M\.\d+\.A\.\w+)\.html$/);
-        if (!idMatch) continue;
+        // 若 title 區塊找不到，退而求其次找整個區塊第一個 M.xxx 連結
+        if (!href) {
+            const fallback = block.match(/<a\s+href="([^"]*\/M\.\d+\.A\.[^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+            if (fallback) {
+                href = fallback[1];
+                titleHtml = fallback[2];
+            }
+        }
+
+        if (!href) {
+            if (debug) console.log(`[DEBUG] 第 ${i} 個區塊找不到標題連結`);
+            continue;
+        }
+
+        // --- 文章 ID（兼容 /M.xxx.html 與 /bbs/xxx/M.xxx.html）---
+        const idMatch = href.match(/\/(M\.\d+\.A\.[A-Za-z0-9]+)\.html/);
+        if (!idMatch) {
+            if (debug) console.log(`[DEBUG] 第 ${i} 個區塊 href 無法解析 ID：${href}`);
+            continue;
+        }
         const articleId = idMatch[1];
 
         if (knownIds.has(articleId)) continue;
 
+        // --- 判斷是否已刪除 ---
         let isDeleted = false;
         let finalAuthor = authorText;
 
@@ -112,7 +146,7 @@ function parsePage(html, knownIds, authorStats, pageLabel, startDateNum) {
                 console.log(`[${pageLabel}] 從標題提取作者：${finalAuthor}（文章 ${articleId}）`);
             } else {
                 finalAuthor = '[未知]';
-                console.warn(`[${pageLabel}] 無法提取作者，文章 ID: ${articleId}，標題: ${titleHtml}`);
+                console.warn(`[${pageLabel}] 無法提取作者，文章 ID: ${articleId}`);
             }
         }
 
@@ -143,9 +177,6 @@ function parsePage(html, knownIds, authorStats, pageLabel, startDateNum) {
     return newArticles;
 }
 
-/**
- * 讀取或初始化狀態
- */
 function loadState() {
     if (fs.existsSync(STATE_FILE)) {
         try {
@@ -163,9 +194,6 @@ function loadState() {
     };
 }
 
-/**
- * 保存狀態
- */
 function saveState(state) {
     const toSave = {
         lastScannedPage: state.lastScannedPage,
@@ -174,9 +202,6 @@ function saveState(state) {
     fs.writeFileSync(STATE_FILE, JSON.stringify(toSave, null, 2));
 }
 
-/**
- * 讀取現有的 stats.json
- */
 function loadExistingStats() {
     if (fs.existsSync(STATS_FILE)) {
         try {
@@ -202,9 +227,6 @@ function loadExistingStats() {
     return {};
 }
 
-/**
- * 合併新的統計到現有統計（含去重）
- */
 function mergeStats(existing, newStats) {
     for (const [author, info] of Object.entries(newStats)) {
         if (!existing[author]) {
@@ -217,30 +239,24 @@ function mergeStats(existing, newStats) {
             };
         }
 
-        // 合併 articleIds 並去重
         const idSet = new Set(existing[author].articleIds);
         for (const id of info.articleIds) {
             idSet.add(id);
         }
         existing[author].articleIds = Array.from(idSet);
 
-        // 合併 deletedIds 並去重
         const delSet = new Set(existing[author].deletedIds || []);
         for (const id of (info.deletedIds || [])) {
             delSet.add(id);
         }
         existing[author].deletedIds = Array.from(delSet);
 
-        // 根據去重後的數量重新計算
         existing[author].count = existing[author].articleIds.length;
         existing[author].deletedCount = existing[author].deletedIds.length;
         existing[author].normalCount = existing[author].count - existing[author].deletedCount;
     }
 }
 
-/**
- * 修復 stats.json：對每個作者的 articleIds 與 deletedIds 去重，並重新計算 count
- */
 function repairStats() {
     if (!fs.existsSync(STATS_FILE)) return;
     try {
@@ -265,7 +281,6 @@ function repairStats() {
                 info.deletedCount = validDeleted.length;
                 info.normalCount = info.count - info.deletedCount;
                 fixed = true;
-                console.log(`🔧 修復作者 ${author}：${info.count} 篇（刪除 ${info.deletedCount}）`);
             }
         }
         if (fixed) {
@@ -282,15 +297,9 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * 主程式
- */
 async function main() {
     console.log('=== PTT e-coupon 統計爬蟲 (增量版) ===');
-
-    // ✅ 先修復歷史資料
     repairStats();
-
     console.log(`統計起始日期：${START_DATE} (包含)`);
 
     const state = loadState();
@@ -320,7 +329,9 @@ async function main() {
         console.log(`抓取第 ${page} 頁...`);
         try {
             const html = await fetchPage(url);
-            const newIds = parsePage(html, knownIds, authorStats, `第${page}頁`, START_DATE_NUM);
+            // 只在第一頁且 DEBUG_HTML 開啟時印出 HTML 片段
+            const debug = (DEBUG_HTML && page === startPage);
+            const newIds = parsePage(html, knownIds, authorStats, `第${page}頁`, START_DATE_NUM, debug);
 
             if (newIds.length > 0) {
                 newArticleCount += newIds.length;
@@ -341,7 +352,7 @@ async function main() {
             await sleep(DELAY_MS);
         } catch (err) {
             if (err.message.includes('404')) {
-                console.log(`第 ${page} 頁不存在 (404)，可能已達最新頁，停止抓取。`);
+                console.log(`第 ${page} 頁不存在 (404)，停止抓取。`);
                 lastScannedPage = page - 1;
                 saveState({ lastScannedPage, knownIds });
                 break;
