@@ -17,16 +17,32 @@
         <p id="info" class="info-bar">載入中…</p>
     </div>
 
-    <!-- ⚠️ 3 小時內連續發文警示 -->
+    <!-- ⚠️ 3 小時內連續發文警示（可收合） -->
     <div id="rapid" class="card card-rapid" style="display:none;">
-        <div class="card-title"><span class="icon">⚠️</span> 3 小時內連續發文</div>
-        <div id="rapid-content"></div>
+        <div class="card-title">
+            <span class="icon">⚠️</span> 3 小時內連續發文
+            <button class="toggle-btn" id="toggle-rapid" aria-expanded="true">
+                <span id="rapid-toggle-label">收合</span>
+                <span class="arrow" id="rapid-toggle-arrow">▼</span>
+            </button>
+        </div>
+        <div class="card-content-wrapper" id="rapid-wrapper">
+            <div id="rapid-content"></div>
+        </div>
     </div>
 
-    <!-- 📋 7 日內單日發文 ≥ 2 篇 -->
+    <!-- 📋 7 日內單日發文 ≥ 2 篇（可收合） -->
     <div id="daily-multi" class="card card-rapid" style="display:none;">
-        <div class="card-title"><span class="icon">📋</span> 7 日內單日發文超過 1 篇</div>
-        <div id="daily-multi-content"></div>
+        <div class="card-title">
+            <span class="icon">📋</span> 7 日內單日發文超過 1 篇
+            <button class="toggle-btn" id="toggle-daily-multi" aria-expanded="true">
+                <span id="daily-multi-toggle-label">收合</span>
+                <span class="arrow" id="daily-multi-toggle-arrow">▼</span>
+            </button>
+        </div>
+        <div class="card-content-wrapper" id="daily-multi-wrapper">
+            <div id="daily-multi-content"></div>
+        </div>
     </div>
 
     <!-- 📅 每日發文日曆（可收合） -->
@@ -38,7 +54,7 @@
                 <span class="arrow" id="calendar-toggle-arrow">▼</span>
             </button>
         </div>
-        <div class="calendar-content-wrapper" id="calendar-wrapper">
+        <div class="card-content-wrapper" id="calendar-wrapper">
             <div id="calendar-content"></div>
         </div>
     </div>

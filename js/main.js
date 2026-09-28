@@ -1,8 +1,8 @@
 // js/main.js - 7日內單日多篇 + 3小時連續發文 + 日曆 + 文章ID收合
-const EXCLUDED_AUTHORS = ['jasome', 'lintsungyi', 'andy199113'];
+const EXCLUDED_AUTHORS = ['jasome', 'andy199113'];
 
-const MAX_ID_DISPLAY = 10;   // 文章 ID 超過此數量時收合
-const DAILY_LOOKBACK_DAYS = 7;  // 檢查最近 N 天的單日多篇
+const MAX_ID_DISPLAY = 10;
+const DAILY_LOOKBACK_DAYS = 7;
 
 let statsData = null;
 let calendarDateCounts = {};
@@ -16,7 +16,7 @@ function getTimestampFromId(articleId) {
     return match ? parseInt(match[1], 10) : 0;
 }
 
-// ----- 格式化時間戳為可讀字串 -----
+// ----- 格式化時間戳 -----
 function formatTimestamp(ts) {
     if (!ts) return '';
     const d = new Date(ts * 1000);
@@ -61,19 +61,16 @@ function findRapidPosts(articleIds, deletedIds, hours = 3) {
     return { hasRapid: groups.length > 0, groups };
 }
 
-// ----- 偵測最近 N 天內，是否有單日發文 ≥ 2 篇 -----
-// 回傳：[{ date: 'YYYY-MM-DD', count: n, ids: [...] }, ...]（依日期新→舊排序）
+// ----- 偵測最近 N 天內，單日發文 ≥ 2 篇 -----
 function findDailyMultiPosts(articleIds, deletedIds, days = DAILY_LOOKBACK_DAYS) {
     const deletedSet = new Set(deletedIds || []);
     const validIds = articleIds.filter(id => !deletedSet.has(id));
 
-    // 今天往前推 days-1 天（含今天，共 days 天）
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - (days - 1));
 
-    // 統計每天的文章數量
     const dailyMap = {};
     for (const id of validIds) {
         const ts = getTimestampFromId(id);
@@ -88,18 +85,17 @@ function findDailyMultiPosts(articleIds, deletedIds, days = DAILY_LOOKBACK_DAYS)
         dailyMap[key].ids.push(id);
     }
 
-    // 只保留 count ≥ 2 的日期，並依日期新→舊排序
     const result = [];
     for (const [date, info] of Object.entries(dailyMap)) {
         if (info.count >= 2) {
             result.push({ date, count: info.count, ids: info.ids });
         }
     }
-    result.sort((a, b) => b.date.localeCompare(a.date));  // 新→舊
+    result.sort((a, b) => b.date.localeCompare(a.date));
     return result;
 }
 
-// ----- 過濾掉排除名單 -----
+// ----- 過濾排除名單 -----
 function getFilteredStats(data) {
     const filtered = {};
     for (const [author, info] of Object.entries(data.stats)) {
@@ -183,6 +179,10 @@ function renderCalendar() {
 
     const { total, uniqueAuthorCount } = getMonthStats(calYear, calMonth);
 
+    // 本月天數與每日平均
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const avgPerDay = daysInMonth > 0 ? (total / daysInMonth).toFixed(1) : '0.0';
+
     const header = document.createElement('div');
     header.className = 'calendar-header';
 
@@ -199,7 +199,7 @@ function renderCalendar() {
     title.className = 'cal-title';
     title.innerHTML = `${calYear}年${calMonth + 1}月
         <span class="cal-total">(總計 ${total} 篇)</span>
-        <span class="cal-uniq">不重複作者：${uniqueAuthorCount} 人</span>`;
+        <span class="cal-uniq">不重複作者：${uniqueAuthorCount} 人 ｜ 每日平均：${avgPerDay} 篇</span>`;
 
     const nextBtn = document.createElement('button');
     nextBtn.className = 'cal-nav-btn';
@@ -227,7 +227,7 @@ function renderCalendar() {
     });
 
     const firstDay = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const daysInMonth2 = new Date(calYear, calMonth + 1, 0).getDate();
 
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
@@ -235,7 +235,7 @@ function renderCalendar() {
         grid.appendChild(empty);
     }
 
-    for (let day = 1; day <= daysInMonth; day++) {
+    for (let day = 1; day <= daysInMonth2; day++) {
         const cell = document.createElement('div');
         cell.className = 'calendar-cell';
 
@@ -326,7 +326,6 @@ function render(data) {
     table.style.display = 'table';
     toolbar.style.display = 'block';
 
-    // ----- 填入表格 -----
     for (const [author, infoObj] of entries) {
         const row = document.createElement('tr');
 
@@ -460,32 +459,38 @@ function render(data) {
     }
 }
 
-// ----- 日曆收合開關 -----
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('toggle-calendar');
-    const wrapper = document.getElementById('calendar-wrapper');
-    const arrow = document.getElementById('calendar-toggle-arrow');
-    const label = document.getElementById('calendar-toggle-label');
+// ----- 通用收合初始化 -----
+function initToggle(btnId, wrapperId, arrowId, labelId, storageKey) {
+    const btn = document.getElementById(btnId);
+    const wrapper = document.getElementById(wrapperId);
+    const arrow = document.getElementById(arrowId);
+    const label = document.getElementById(labelId);
 
-    if (!toggleBtn || !wrapper) return;
+    if (!btn || !wrapper) return;
 
-    const isCollapsed = localStorage.getItem('calendarCollapsed') === 'true';
+    const isCollapsed = localStorage.getItem(storageKey) === 'true';
     if (isCollapsed) {
         wrapper.classList.add('collapsed');
         arrow.classList.add('open');
         label.textContent = '展開';
-        toggleBtn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-expanded', 'false');
     } else {
-        toggleBtn.setAttribute('aria-expanded', 'true');
+        btn.setAttribute('aria-expanded', 'true');
     }
 
-    toggleBtn.addEventListener('click', function() {
+    btn.addEventListener('click', function() {
         const nowCollapsed = wrapper.classList.toggle('collapsed');
         arrow.classList.toggle('open', nowCollapsed);
         label.textContent = nowCollapsed ? '展開' : '收合';
         this.setAttribute('aria-expanded', String(!nowCollapsed));
-        localStorage.setItem('calendarCollapsed', nowCollapsed);
+        localStorage.setItem(storageKey, nowCollapsed);
     });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initToggle('toggle-calendar', 'calendar-wrapper', 'calendar-toggle-arrow', 'calendar-toggle-label', 'calendarCollapsed');
+    initToggle('toggle-rapid', 'rapid-wrapper', 'rapid-toggle-arrow', 'rapid-toggle-label', 'rapidCollapsed');
+    initToggle('toggle-daily-multi', 'daily-multi-wrapper', 'daily-multi-toggle-arrow', 'daily-multi-toggle-label', 'dailyMultiCollapsed');
 });
 
 // ----- 匯出 CSV -----

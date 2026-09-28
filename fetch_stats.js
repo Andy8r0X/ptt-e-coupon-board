@@ -6,11 +6,11 @@ const zlib = require('zlib');
 
 // ===== 可調參數 =====
 const INITIAL_START_PAGE = 3813;
-const MAX_PAGES_TO_FETCH = 80;
+const MAX_PAGES_TO_FETCH = 10;
 const EMPTY_PAGE_THRESHOLD = 5;
 const DELAY_MS = 800;
 const START_DATE = '8/29';
-const DEBUG_HTML = true;   // 暫時開啟，確認抓到的內容
+const DEBUG_HTML = false;   // 暫時開啟，確認抓到的內容
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';

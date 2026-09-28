@@ -140,15 +140,15 @@ body {
 }
 .card-calendar .card-title { color: #2471a3; }
 
-/* 日曆收合容器 */
-.calendar-content-wrapper {
+/* 通用收合容器 */
+.card-content-wrapper {
     overflow: hidden;
     transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
-    max-height: 2000px;
+    max-height: 3000px;
     opacity: 1;
     margin-top: 0;
 }
-.calendar-content-wrapper.collapsed {
+.card-content-wrapper.collapsed {
     max-height: 0;
     opacity: 0;
     margin-top: -10px;
