@@ -2,14 +2,15 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 
 // ===== 可調參數 =====
 const INITIAL_START_PAGE = 3813;
 const MAX_PAGES_TO_FETCH = 80;
-const EMPTY_PAGE_THRESHOLD = 50;      // 改回合理值，避免一次抓太多
+const EMPTY_PAGE_THRESHOLD = 5;
 const DELAY_MS = 800;
 const START_DATE = '8/29';
-const DEBUG_HTML = true;             // 設為 true 會印出第一頁的 HTML 片段
+const DEBUG_HTML = true;   // 暫時開啟，確認抓到的內容
 // ===================
 
 const BASE_URL = 'https://www.ptt.cc/bbs/e-coupon/';
@@ -32,12 +33,18 @@ function getTodayStr() {
     return `${now.getMonth() + 1}/${now.getDate()}`;
 }
 
+/**
+ * 抓取頁面（支援 gzip / deflate 解壓縮）
+ */
 function fetchPage(url) {
     return new Promise((resolve, reject) => {
         const options = {
             headers: {
                 'Cookie': 'over18=1',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+                'Accept-Encoding': 'gzip, deflate'
             }
         };
         https.get(url, options, (res) => {
@@ -45,9 +52,31 @@ function fetchPage(url) {
                 reject(new Error(`404 Not Found: ${url}`));
                 return;
             }
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => resolve(data));
+            if (res.statusCode !== 200) {
+                reject(new Error(`HTTP ${res.statusCode}: ${url}`));
+                return;
+            }
+
+            const chunks = [];
+            res.on('data', chunk => chunks.push(chunk));
+            res.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+                const encoding = (res.headers['content-encoding'] || '').toLowerCase();
+
+                if (encoding === 'gzip') {
+                    zlib.gunzip(buffer, (err, decoded) => {
+                        if (err) return reject(err);
+                        resolve(decoded.toString('utf8'));
+                    });
+                } else if (encoding === 'deflate') {
+                    zlib.inflate(buffer, (err, decoded) => {
+                        if (err) return reject(err);
+                        resolve(decoded.toString('utf8'));
+                    });
+                } else {
+                    resolve(buffer.toString('utf8'));
+                }
+            });
         }).on('error', reject);
     });
 }
@@ -64,41 +93,44 @@ function extractOriginalAuthor(titleHtml) {
 }
 
 /**
- * 解析單頁文章（更健壯版，兼容 PTT 新舊版 HTML 結構）
+ * 解析單頁文章
  */
 function parsePage(html, knownIds, authorStats, pageLabel, startDateNum, debug = false) {
     const newArticles = [];
+
+    if (debug) {
+        console.log(`[DEBUG] HTML 總長度：${html.length} 字元`);
+        console.log(`[DEBUG] HTML 前 500 字元：`);
+        console.log(html.substring(0, 500));
+        console.log(`[DEBUG] HTML 結尾 200 字元：`);
+        console.log(html.substring(Math.max(0, html.length - 200)));
+        console.log(`[DEBUG] 是否包含 'r-ent'：${html.includes('r-ent')}`);
+        console.log(`[DEBUG] 是否包含 'r-ent' 的其他形式：${html.includes('class="r-ent"')}`);
+        // 嘗試其他可能的分隔
+        console.log(`[DEBUG] split 'r-ent' 結果數量：${html.split('r-ent').length - 1}`);
+    }
+
     const parts = html.split('<div class="r-ent">');
 
     if (debug) {
         console.log(`[DEBUG] 頁面分割後共 ${parts.length - 1} 個 r-ent 區塊`);
-        if (parts.length > 1) {
-            console.log(`[DEBUG] 第一個區塊內容（前 800 字元）：`);
-            console.log(parts[1].substring(0, 800));
-        }
     }
 
     for (let i = 1; i < parts.length; i++) {
         const block = parts[i];
 
-        // --- 日期 ---
         const dateMatch = block.match(/<div class="date">\s*([^<]*?)\s*<\/div>/);
-        if (!dateMatch) {
-            if (debug) console.log(`[DEBUG] 第 ${i} 個區塊無日期`);
-            continue;
-        }
+        if (!dateMatch) continue;
         const dateText = dateMatch[1].trim();
         if (!dateText) continue;
 
         const dateNum = dateToNum(dateText);
         if (dateNum < startDateNum) continue;
 
-        // --- 作者 ---
         let authorText = '';
         const authorMatch = block.match(/<div class="author">\s*([^<]*?)\s*<\/div>/);
         if (authorMatch) authorText = authorMatch[1].trim();
 
-        // --- 標題連結（優先從 title 區塊內找）---
         let href = '';
         let titleHtml = '';
         const titleSection = block.match(/<div class="title">([\s\S]*?)<\/div>/);
@@ -110,7 +142,6 @@ function parsePage(html, knownIds, authorStats, pageLabel, startDateNum, debug =
             }
         }
 
-        // 若 title 區塊找不到，退而求其次找整個區塊第一個 M.xxx 連結
         if (!href) {
             const fallback = block.match(/<a\s+href="([^"]*\/M\.\d+\.A\.[^"]+)"[^>]*>([\s\S]*?)<\/a>/);
             if (fallback) {
@@ -119,22 +150,14 @@ function parsePage(html, knownIds, authorStats, pageLabel, startDateNum, debug =
             }
         }
 
-        if (!href) {
-            if (debug) console.log(`[DEBUG] 第 ${i} 個區塊找不到標題連結`);
-            continue;
-        }
+        if (!href) continue;
 
-        // --- 文章 ID（兼容 /M.xxx.html 與 /bbs/xxx/M.xxx.html）---
         const idMatch = href.match(/\/(M\.\d+\.A\.[A-Za-z0-9]+)\.html/);
-        if (!idMatch) {
-            if (debug) console.log(`[DEBUG] 第 ${i} 個區塊 href 無法解析 ID：${href}`);
-            continue;
-        }
+        if (!idMatch) continue;
         const articleId = idMatch[1];
 
         if (knownIds.has(articleId)) continue;
 
-        // --- 判斷是否已刪除 ---
         let isDeleted = false;
         let finalAuthor = authorText;
 
@@ -329,7 +352,6 @@ async function main() {
         console.log(`抓取第 ${page} 頁...`);
         try {
             const html = await fetchPage(url);
-            // 只在第一頁且 DEBUG_HTML 開啟時印出 HTML 片段
             const debug = (DEBUG_HTML && page === startPage);
             const newIds = parsePage(html, knownIds, authorStats, `第${page}頁`, START_DATE_NUM, debug);
 
