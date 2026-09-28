@@ -6,7 +6,7 @@ const path = require('path');
 // ===== 可調參數 =====
 const INITIAL_START_PAGE = 3813;
 const MAX_PAGES_TO_FETCH = 80;
-const EMPTY_PAGE_THRESHOLD = 5;      // 改回合理值，避免一次抓太多
+const EMPTY_PAGE_THRESHOLD = 50;      // 改回合理值，避免一次抓太多
 const DELAY_MS = 800;
 const START_DATE = '8/29';
 const DEBUG_HTML = true;             // 設為 true 會印出第一頁的 HTML 片段
