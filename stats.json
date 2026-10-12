@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-12T12:22:09.671Z",
+  "generatedAt": "2026-10-12T12:23:32.832Z",
   "mode": "incremental",
   "dateRange": {
     "start": "8/29",
     "end": "10/12"
   },
-  "scannedPages": 6,
-  "totalArticles": 5773,
+  "scannedPages": 32,
+  "totalArticles": 5774,
   "stats": {
     "ksirf": {
       "count": 1,
@@ -20844,12 +20844,13 @@
       "deletedIds": []
     },
     "mitter7925": {
-      "count": 2,
-      "normalCount": 2,
+      "count": 3,
+      "normalCount": 3,
       "deletedCount": 0,
       "articleIds": [
         "M.1790535297.A.AE1",
-        "M.1791298037.A.3FB"
+        "M.1791298037.A.3FB",
+        "M.1791748141.A.277"
       ],
       "deletedIds": []
     },
