@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-15T10:16:25.944Z",
+  "generatedAt": "2026-10-15T19:56:19.683Z",
   "mode": "incremental",
   "dateRange": {
     "start": "8/29",
-    "end": "10/15"
+    "end": "10/16"
   },
-  "scannedPages": 3,
-  "totalArticles": 6192,
+  "scannedPages": 2,
+  "totalArticles": 6248,
   "stats": {
     "ksirf": {
       "count": 1,
@@ -332,8 +332,8 @@
       "deletedIds": []
     },
     "psychebinich": {
-      "count": 20,
-      "normalCount": 20,
+      "count": 21,
+      "normalCount": 21,
       "deletedCount": 0,
       "articleIds": [
         "M.1787965673.A.8AD",
@@ -355,7 +355,8 @@
         "M.1791676533.A.6BE",
         "M.1791764232.A.245",
         "M.1791855687.A.B5F",
-        "M.1791944587.A.768"
+        "M.1791944587.A.768",
+        "M.1792074497.A.C17"
       ],
       "deletedIds": []
     },
@@ -424,8 +425,8 @@
       "deletedIds": []
     },
     "njvkhljulk": {
-      "count": 7,
-      "normalCount": 7,
+      "count": 8,
+      "normalCount": 8,
       "deletedCount": 0,
       "articleIds": [
         "M.1787967236.A.FE5",
@@ -434,7 +435,8 @@
         "M.1790673304.A.77D",
         "M.1790845567.A.6A9",
         "M.1791877262.A.2F4",
-        "M.1791955974.A.452"
+        "M.1791955974.A.452",
+        "M.1792076393.A.EC3"
       ],
       "deletedIds": []
     },
@@ -548,13 +550,14 @@
       "deletedIds": []
     },
     "nobodyshare": {
-      "count": 3,
-      "normalCount": 3,
+      "count": 4,
+      "normalCount": 4,
       "deletedCount": 0,
       "articleIds": [
         "M.1787969459.A.9D4",
         "M.1789006932.A.1BD",
-        "M.1790761936.A.340"
+        "M.1790761936.A.340",
+        "M.1792073885.A.F18"
       ],
       "deletedIds": []
     },
@@ -1096,8 +1099,8 @@
       "deletedIds": []
     },
     "shengchuan": {
-      "count": 25,
-      "normalCount": 25,
+      "count": 26,
+      "normalCount": 26,
       "deletedCount": 0,
       "articleIds": [
         "M.1787979298.A.E17",
@@ -1124,7 +1127,8 @@
         "M.1791817413.A.842",
         "M.1791866503.A.96A",
         "M.1791902874.A.F73",
-        "M.1792040465.A.943"
+        "M.1792040465.A.943",
+        "M.1792072918.A.E82"
       ],
       "deletedIds": []
     },
@@ -2211,8 +2215,8 @@
       "deletedIds": []
     },
     "gn01284355": {
-      "count": 22,
-      "normalCount": 22,
+      "count": 23,
+      "normalCount": 23,
       "deletedCount": 0,
       "articleIds": [
         "M.1788003723.A.31D",
@@ -2236,7 +2240,8 @@
         "M.1791714701.A.7C5",
         "M.1791811194.A.0DE",
         "M.1791848949.A.1F9",
-        "M.1791891277.A.217"
+        "M.1791891277.A.217",
+        "M.1792073285.A.9B9"
       ],
       "deletedIds": []
     },
@@ -2846,13 +2851,14 @@
       "deletedIds": []
     },
     "cocoaswifty": {
-      "count": 3,
-      "normalCount": 3,
+      "count": 4,
+      "normalCount": 4,
       "deletedCount": 0,
       "articleIds": [
         "M.1788017987.A.699",
         "M.1788704561.A.421",
-        "M.1789475079.A.655"
+        "M.1789475079.A.655",
+        "M.1792081084.A.DD5"
       ],
       "deletedIds": []
     },
@@ -3604,8 +3610,8 @@
       "deletedIds": []
     },
     "bbsplus": {
-      "count": 8,
-      "normalCount": 8,
+      "count": 9,
+      "normalCount": 9,
       "deletedCount": 0,
       "articleIds": [
         "M.1788068050.A.4A7",
@@ -3615,7 +3621,8 @@
         "M.1790683796.A.69A",
         "M.1791050257.A.364",
         "M.1791205092.A.8DE",
-        "M.1791533520.A.206"
+        "M.1791533520.A.206",
+        "M.1792072925.A.4DD"
       ],
       "deletedIds": []
     },
@@ -3837,8 +3844,8 @@
       "deletedIds": []
     },
     "jinzong": {
-      "count": 12,
-      "normalCount": 12,
+      "count": 13,
+      "normalCount": 13,
       "deletedCount": 0,
       "articleIds": [
         "M.1788076565.A.786",
@@ -3852,7 +3859,8 @@
         "M.1791501556.A.D75",
         "M.1791938489.A.14A",
         "M.1791958349.A.19A",
-        "M.1792038553.A.19A"
+        "M.1792038553.A.19A",
+        "M.1792077136.A.C19"
       ],
       "deletedIds": []
     },
@@ -6137,8 +6145,8 @@
       "deletedIds": []
     },
     "qazokm": {
-      "count": 22,
-      "normalCount": 22,
+      "count": 23,
+      "normalCount": 23,
       "deletedCount": 0,
       "articleIds": [
         "M.1788184527.A.7FA",
@@ -6162,7 +6170,8 @@
         "M.1791769233.A.FF4",
         "M.1791856203.A.463",
         "M.1791856687.A.6A3",
-        "M.1791985222.A.2E4"
+        "M.1791985222.A.2E4",
+        "M.1792075743.A.54F"
       ],
       "deletedIds": []
     },
@@ -7153,15 +7162,16 @@
       "deletedIds": []
     },
     "tai168": {
-      "count": 5,
-      "normalCount": 5,
+      "count": 6,
+      "normalCount": 6,
       "deletedCount": 0,
       "articleIds": [
         "M.1788249239.A.E73",
         "M.1790124747.A.1CD",
         "M.1790648753.A.96A",
         "M.1791722842.A.EDC",
-        "M.1791858043.A.A3B"
+        "M.1791858043.A.A3B",
+        "M.1792071602.A.D12"
       ],
       "deletedIds": []
     },
@@ -7436,8 +7446,8 @@
       "deletedIds": []
     },
     "nina14": {
-      "count": 8,
-      "normalCount": 8,
+      "count": 9,
+      "normalCount": 9,
       "deletedCount": 0,
       "articleIds": [
         "M.1788263862.A.CE3",
@@ -7447,7 +7457,8 @@
         "M.1790258165.A.4E4",
         "M.1790914495.A.E0B",
         "M.1791209246.A.EA0",
-        "M.1791892982.A.882"
+        "M.1791892982.A.882",
+        "M.1792076243.A.1FC"
       ],
       "deletedIds": []
     },
@@ -8579,13 +8590,14 @@
       "deletedIds": []
     },
     "a88573081": {
-      "count": 3,
-      "normalCount": 3,
+      "count": 4,
+      "normalCount": 4,
       "deletedCount": 0,
       "articleIds": [
         "M.1788348765.A.83B",
         "M.1789104486.A.C41",
-        "M.1791645254.A.EAC"
+        "M.1791645254.A.EAC",
+        "M.1792077803.A.A59"
       ],
       "deletedIds": []
     },
@@ -8790,8 +8802,8 @@
       "deletedIds": []
     },
     "havenew": {
-      "count": 33,
-      "normalCount": 33,
+      "count": 34,
+      "normalCount": 34,
       "deletedCount": 0,
       "articleIds": [
         "M.1788356306.A.EE0",
@@ -8826,7 +8838,8 @@
         "M.1791734388.A.1F1",
         "M.1791820788.A.6C7",
         "M.1791907187.A.15E",
-        "M.1791993591.A.D8F"
+        "M.1791993591.A.D8F",
+        "M.1792075969.A.875"
       ],
       "deletedIds": []
     },
@@ -8933,8 +8946,8 @@
       "deletedIds": []
     },
     "angelshin": {
-      "count": 24,
-      "normalCount": 24,
+      "count": 25,
+      "normalCount": 25,
       "deletedCount": 0,
       "articleIds": [
         "M.1788364524.A.6C1",
@@ -8960,13 +8973,14 @@
         "M.1791730685.A.F2E",
         "M.1791815926.A.48E",
         "M.1791903778.A.C13",
-        "M.1791992333.A.FA3"
+        "M.1791992333.A.FA3",
+        "M.1792077372.A.8A6"
       ],
       "deletedIds": []
     },
     "jackloutter": {
-      "count": 22,
-      "normalCount": 22,
+      "count": 23,
+      "normalCount": 23,
       "deletedCount": 0,
       "articleIds": [
         "M.1788364757.A.50A",
@@ -8990,7 +9004,8 @@
         "M.1791691108.A.0B7",
         "M.1791814538.A.1EB",
         "M.1791903941.A.D6A",
-        "M.1792034283.A.54C"
+        "M.1792034283.A.54C",
+        "M.1792079732.A.56D"
       ],
       "deletedIds": []
     },
@@ -9236,14 +9251,15 @@
       "deletedIds": []
     },
     "mimi6045": {
-      "count": 4,
-      "normalCount": 4,
+      "count": 5,
+      "normalCount": 5,
       "deletedCount": 0,
       "articleIds": [
         "M.1788420784.A.180",
         "M.1789457265.A.745",
         "M.1790051881.A.4B9",
-        "M.1791506107.A.29A"
+        "M.1791506107.A.29A",
+        "M.1792077048.A.E52"
       ],
       "deletedIds": []
     },
@@ -11017,8 +11033,8 @@
       "deletedIds": []
     },
     "lewis34197": {
-      "count": 8,
-      "normalCount": 8,
+      "count": 9,
+      "normalCount": 9,
       "deletedCount": 0,
       "articleIds": [
         "M.1788613994.A.744",
@@ -11028,7 +11044,8 @@
         "M.1790786446.A.03C",
         "M.1791046687.A.1EA",
         "M.1791476116.A.D31",
-        "M.1791996293.A.F46"
+        "M.1791996293.A.F46",
+        "M.1792083319.A.64B"
       ],
       "deletedIds": []
     },
@@ -11076,8 +11093,8 @@
       "deletedIds": []
     },
     "ako725": {
-      "count": 6,
-      "normalCount": 6,
+      "count": 7,
+      "normalCount": 7,
       "deletedCount": 0,
       "articleIds": [
         "M.1788619981.A.669",
@@ -11085,7 +11102,8 @@
         "M.1789477478.A.9E4",
         "M.1789842576.A.7EB",
         "M.1790165583.A.1BD",
-        "M.1790427447.A.AB3"
+        "M.1790427447.A.AB3",
+        "M.1792082941.A.398"
       ],
       "deletedIds": []
     },
@@ -11102,8 +11120,8 @@
       "deletedIds": []
     },
     "Grave": {
-      "count": 16,
-      "normalCount": 16,
+      "count": 17,
+      "normalCount": 17,
       "deletedCount": 0,
       "articleIds": [
         "M.1788622786.A.B26",
@@ -11121,7 +11139,8 @@
         "M.1791690765.A.7CE",
         "M.1791738067.A.AED",
         "M.1791885036.A.66B",
-        "M.1791994255.A.D12"
+        "M.1791994255.A.D12",
+        "M.1792083272.A.86A"
       ],
       "deletedIds": []
     },
@@ -13700,13 +13719,14 @@
       "deletedIds": []
     },
     "Watson0620": {
-      "count": 3,
-      "normalCount": 3,
+      "count": 4,
+      "normalCount": 4,
       "deletedCount": 0,
       "articleIds": [
         "M.1788960374.A.F2A",
         "M.1789993780.A.84A",
-        "M.1791118866.A.751"
+        "M.1791118866.A.751",
+        "M.1792075055.A.6E5"
       ],
       "deletedIds": []
     },
@@ -13729,8 +13749,8 @@
       "deletedIds": []
     },
     "miniss": {
-      "count": 12,
-      "normalCount": 12,
+      "count": 13,
+      "normalCount": 13,
       "deletedCount": 0,
       "articleIds": [
         "M.1788968532.A.0E8",
@@ -13744,7 +13764,8 @@
         "M.1791684932.A.8C7",
         "M.1791737157.A.8B4",
         "M.1791864211.A.5F6",
-        "M.1791994904.A.26F"
+        "M.1791994904.A.26F",
+        "M.1792081540.A.5A8"
       ],
       "deletedIds": []
     },
@@ -14396,8 +14417,8 @@
       "deletedIds": []
     },
     "ctrcbagayaro": {
-      "count": 12,
-      "normalCount": 12,
+      "count": 13,
+      "normalCount": 13,
       "deletedCount": 0,
       "articleIds": [
         "M.1789050758.A.F0D",
@@ -14411,7 +14432,8 @@
         "M.1790176056.A.AC9",
         "M.1790351686.A.4F0",
         "M.1790440769.A.5D5",
-        "M.1792057934.A.5CB"
+        "M.1792057934.A.5CB",
+        "M.1792073027.A.F3A"
       ],
       "deletedIds": []
     },
@@ -14803,8 +14825,8 @@
       "deletedIds": []
     },
     "ParuruChan": {
-      "count": 23,
-      "normalCount": 23,
+      "count": 24,
+      "normalCount": 24,
       "deletedCount": 0,
       "articleIds": [
         "M.1789124977.A.392",
@@ -14829,7 +14851,8 @@
         "M.1791549783.A.C25",
         "M.1791714096.A.300",
         "M.1791800699.A.62C",
-        "M.1791983597.A.6DE"
+        "M.1791983597.A.6DE",
+        "M.1792071182.A.CCA"
       ],
       "deletedIds": []
     },
@@ -15257,11 +15280,12 @@
       "deletedIds": []
     },
     "zagyoo1431": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1789222938.A.53C"
+        "M.1789222938.A.53C",
+        "M.1792074897.A.CB6"
       ],
       "deletedIds": []
     },
@@ -17712,8 +17736,8 @@
       "deletedIds": []
     },
     "younglihsing": {
-      "count": 24,
-      "normalCount": 24,
+      "count": 25,
+      "normalCount": 25,
       "deletedCount": 0,
       "articleIds": [
         "M.1789671006.A.C81",
@@ -17739,7 +17763,8 @@
         "M.1791653654.A.439",
         "M.1791788952.A.426",
         "M.1791831724.A.449",
-        "M.1792053543.A.C2F"
+        "M.1792053543.A.C2F",
+        "M.1792092410.A.731"
       ],
       "deletedIds": []
     },
@@ -22608,8 +22633,8 @@
       "deletedIds": []
     },
     "babaland": {
-      "count": 9,
-      "normalCount": 9,
+      "count": 10,
+      "normalCount": 10,
       "deletedCount": 0,
       "articleIds": [
         "M.1791086612.A.5B1",
@@ -22620,7 +22645,8 @@
         "M.1791454329.A.C2C",
         "M.1791733282.A.7F6",
         "M.1791799255.A.D37",
-        "M.1791886852.A.FA4"
+        "M.1791886852.A.FA4",
+        "M.1792074538.A.FED"
       ],
       "deletedIds": []
     },
@@ -23009,11 +23035,12 @@
       "deletedIds": []
     },
     "Tuih": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1790982841.A.B20"
+        "M.1790982841.A.B20",
+        "M.1792075697.A.431"
       ],
       "deletedIds": []
     },
@@ -23274,11 +23301,12 @@
       "deletedIds": []
     },
     "cmw1": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1791213704.A.943"
+        "M.1791213704.A.943",
+        "M.1792078376.A.523"
       ],
       "deletedIds": []
     },
@@ -23329,12 +23357,13 @@
       "deletedIds": []
     },
     "depressedken": {
-      "count": 2,
-      "normalCount": 2,
+      "count": 3,
+      "normalCount": 3,
       "deletedCount": 0,
       "articleIds": [
         "M.1791253372.A.8A5",
-        "M.1791890859.A.CE0"
+        "M.1791890859.A.CE0",
+        "M.1792073519.A.33E"
       ],
       "deletedIds": []
     },
@@ -24853,11 +24882,12 @@
       "deletedIds": []
     },
     "m0989722206": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1791816701.A.E30"
+        "M.1791816701.A.E30",
+        "M.1792078762.A.28D"
       ],
       "deletedIds": []
     },
@@ -25421,6 +25451,60 @@
       "deletedCount": 0,
       "articleIds": [
         "M.1792054453.A.CF7"
+      ],
+      "deletedIds": []
+    },
+    "tomb": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792073911.A.AF5"
+      ],
+      "deletedIds": []
+    },
+    "ayulovem": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792074531.A.34A"
+      ],
+      "deletedIds": []
+    },
+    "jommk": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792076322.A.EE6"
+      ],
+      "deletedIds": []
+    },
+    "yas": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792076706.A.5D3"
+      ],
+      "deletedIds": []
+    },
+    "chiayigo": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792076749.A.F03"
+      ],
+      "deletedIds": []
+    },
+    "sumade": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792077793.A.0D5"
       ],
       "deletedIds": []
     }
