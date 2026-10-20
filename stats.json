@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-20T05:43:54.150Z",
+  "generatedAt": "2026-10-20T06:42:01.390Z",
   "mode": "incremental",
   "dateRange": {
     "start": "8/29",
     "end": "10/20"
   },
-  "scannedPages": 7,
-  "totalArticles": 6936,
+  "scannedPages": 1,
+  "totalArticles": 6945,
   "stats": {
     "ksirf": {
       "count": 1,
@@ -5425,8 +5425,8 @@
       "deletedIds": []
     },
     "KCKCLIN": {
-      "count": 37,
-      "normalCount": 37,
+      "count": 38,
+      "normalCount": 38,
       "deletedCount": 0,
       "articleIds": [
         "M.1788154480.A.319",
@@ -5465,7 +5465,8 @@
         "M.1792410966.A.6B8",
         "M.1792410999.A.319",
         "M.1792457552.A.4C5",
-        "M.1792457583.A.57A"
+        "M.1792457583.A.57A",
+        "M.1792475826.A.690"
       ],
       "deletedIds": []
     },
@@ -9405,13 +9406,14 @@
       "deletedIds": []
     },
     "aawei": {
-      "count": 3,
-      "normalCount": 3,
+      "count": 4,
+      "normalCount": 4,
       "deletedCount": 0,
       "articleIds": [
         "M.1788396349.A.3A5",
         "M.1789522671.A.929",
-        "M.1789965631.A.0D1"
+        "M.1789965631.A.0D1",
+        "M.1792475332.A.828"
       ],
       "deletedIds": []
     },
@@ -17185,11 +17187,12 @@
       "deletedIds": []
     },
     "doratseng": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1789485153.A.4EA"
+        "M.1789485153.A.4EA",
+        "M.1792476725.A.56E"
       ],
       "deletedIds": []
     },
@@ -17364,11 +17367,12 @@
       "deletedIds": []
     },
     "Aizan": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1789539574.A.6DD"
+        "M.1789539574.A.6DD",
+        "M.1792478198.A.ACF"
       ],
       "deletedIds": []
     },
@@ -18719,15 +18723,16 @@
       "deletedIds": []
     },
     "arashivivian": {
-      "count": 5,
-      "normalCount": 5,
+      "count": 6,
+      "normalCount": 6,
       "deletedCount": 0,
       "articleIds": [
         "M.1789783595.A.80E",
         "M.1790045355.A.9CF",
         "M.1790932081.A.5AD",
         "M.1791619564.A.E3E",
-        "M.1792290432.A.9CD"
+        "M.1792290432.A.9CD",
+        "M.1792476446.A.692"
       ],
       "deletedIds": []
     },
@@ -18770,11 +18775,12 @@
       "deletedIds": []
     },
     "Evan0607": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1789787750.A.DC0"
+        "M.1789787750.A.DC0",
+        "M.1792474950.A.62C"
       ],
       "deletedIds": []
     },
@@ -22862,11 +22868,12 @@
       "deletedIds": []
     },
     "n7582788": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1790849540.A.00C"
+        "M.1790849540.A.00C",
+        "M.1792477418.A.D9D"
       ],
       "deletedIds": []
     },
@@ -26168,11 +26175,12 @@
       "deletedIds": []
     },
     "genulo": {
-      "count": 1,
-      "normalCount": 1,
+      "count": 2,
+      "normalCount": 2,
       "deletedCount": 0,
       "articleIds": [
-        "M.1792126758.A.C0E"
+        "M.1792126758.A.C0E",
+        "M.1792475194.A.269"
       ],
       "deletedIds": []
     },
@@ -26993,6 +27001,15 @@
       "deletedCount": 0,
       "articleIds": [
         "M.1792470453.A.4E2"
+      ],
+      "deletedIds": []
+    },
+    "lamirk": {
+      "count": 1,
+      "normalCount": 1,
+      "deletedCount": 0,
+      "articleIds": [
+        "M.1792478225.A.1BD"
       ],
       "deletedIds": []
     }
